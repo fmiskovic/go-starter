@@ -25,7 +25,7 @@ func main() {
 
 	initRoutes(app)
 	listenAddr := os.Getenv("HTTP_LISTEN_ADDR")
-	fmt.Printf("app running in %s and listening on: http://127.0.0.1:%s\n", util.AppEnv(), listenAddr)
+	fmt.Printf("app running in %s and listening on: http://localhost:%s\n", util.AppEnv(), listenAddr)
 	log.Fatal(app.Listen(listenAddr))
 }
 

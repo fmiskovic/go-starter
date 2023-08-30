@@ -1,8 +1,14 @@
-build-app:
+build:
 	@go build -o bin/app ./cmd/app/
 
-run: build-app
+run: build
 	@./bin/app
 
-clean: 
+clear:
 	@rm -rf bin
+
+test:
+	go test -v ./...
+
+race: build
+	go test -v ./... --race
