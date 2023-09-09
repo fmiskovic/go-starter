@@ -1,7 +1,7 @@
-# The bored stack
+# Go Izzy Pack
 A fullstack starter pack for default ssr rendering, inspired by [anthdm's boredstack](https://github.com/anthdm/boredstack).
 
-The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTMX and AlpineJS (maybe)...
+The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)...
 
 ### Style
 - `npm run css` - generates css file: ./public/assets/app.css
