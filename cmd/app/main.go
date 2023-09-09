@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/fmiskovic/bs/handlers"
 	"github.com/fmiskovic/bs/util"
@@ -24,8 +25,8 @@ func main() {
 	})
 
 	initRoutes(app)
-	listenAddr := os.Getenv("HTTP_LISTEN_ADDR")
-	fmt.Printf("app running in %s and listening on: http://localhost:%s\n", util.AppEnv(), listenAddr)
+	listenAddr := listenAddrOrDefault()
+	fmt.Printf("app running in %s and listening on: %s\n", util.AppEnv(), listenAddr)
 	log.Fatal(app.Listen(listenAddr))
 }
 
@@ -39,4 +40,12 @@ func initRoutes(app *fiber.App) {
 	app.Get("/flash", handlers.HandleFlash)
 
 	app.Use(handlers.NotFoundMiddleware)
+}
+
+func listenAddrOrDefault() string {
+	addr := os.Getenv("HTTP_LISTEN_ADDR")
+	if strings.TrimSpace(addr) == "" {
+		return ":3000"
+	}
+	return addr
 }
