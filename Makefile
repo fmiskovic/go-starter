@@ -12,3 +12,6 @@ test:
 
 race: build
 	go test -v ./... --race
+
+css: 
+	npm run css
