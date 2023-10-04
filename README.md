@@ -1,4 +1,4 @@
-# Go Izzy Pack
+# Go Starter
 A fullstack starter pack for default ssr rendering, inspired by [anthdm's boredstack](https://github.com/anthdm/boredstack).
 
 The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)...
