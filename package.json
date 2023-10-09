@@ -1,11 +1,11 @@
 {
-  "name": "Go Izzy Pack",
+  "name": "Go Starter Pack",
   "scripts": {
-    "css": "tailwindcss -i ./assets/app.css -o ./public/assets/app.css"
+    "css": "npm i tailwindcss && tailwindcss -i ./assets/app.css -o ./public/assets/app.css"
   },
   "devDependencies": {
-    "tailwindcss": "3.3.3",
+    "alpinejs": "^3.13.0",
     "flowbite": "^1.8.1",
-    "alpinejs": "^3.13.0"
+    "tailwindcss": "^3.3.3"
   }
 }

@@ -1,12 +1,12 @@
-module github.com/fmiskovic/bs
+module github.com/fmiskovic/go-starter
 
 go 1.21
 
 toolchain go1.21.0
 
 require (
-	github.com/gofiber/fiber/v2 v2.49.0
-	github.com/gofiber/template/django/v3 v3.1.5
+	github.com/gofiber/fiber/v2 v2.49.2
+	github.com/gofiber/template/django/v3 v3.1.6
 	github.com/joho/godotenv v1.5.1
 )
 
@@ -31,11 +31,11 @@ require (
 	github.com/uptrace/bun/driver/pgdriver v1.1.14
 	github.com/uptrace/bun/extra/bundebug v1.1.14
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/valyala/fasthttp v1.48.0 // indirect
+	github.com/valyala/fasthttp v1.49.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )

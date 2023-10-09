@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/fmiskovic/bs/util"
+	"github.com/fmiskovic/go-starter/util"
 	_ "github.com/lib/pq"
 
 	"github.com/uptrace/bun"

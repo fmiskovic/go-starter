@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/fmiskovic/bs/handlers"
-	"github.com/fmiskovic/bs/util"
+	"github.com/fmiskovic/go-starter/handlers"
+	"github.com/fmiskovic/go-starter/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
 )
