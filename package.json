@@ -1,10 +1,10 @@
 {
-  "name": "Go Starter Pack",
+  "name": "go-starter-pack",
   "scripts": {
     "css": "npm i tailwindcss && tailwindcss -i ./assets/app.css -o ./public/assets/app.css"
   },
   "devDependencies": {
-    "alpinejs": "^3.13.0",
+    "alpinejs": "^3.13.1",
     "flowbite": "^1.8.1",
     "tailwindcss": "^3.3.3"
   }

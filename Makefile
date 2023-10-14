@@ -13,5 +13,8 @@ test:
 race: build
 	go test -v ./... --race
 
+cover: 
+	go test -cover ./...
+
 css: 
 	npm run css

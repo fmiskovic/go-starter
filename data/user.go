@@ -3,7 +3,7 @@ package data
 import "time"
 
 type User struct {
-	ID          int64     `bun:",pk,autoincrement" json:"id"`
+	Entity
 	Email       string    `json:"email"`
 	FullName    string    `json:"fullname"`
 	DateOfBirth time.Time `json:"dateOfBirth"`
@@ -51,6 +51,18 @@ func WithLocation(location string) UserOption {
 func WithGender(gender Gender) UserOption {
 	return func(u *User) {
 		u.Gender = gender
+	}
+}
+
+func WithCreatedAt(time time.Time) UserOption {
+	return func(u *User) {
+		u.CreatedAt = time
+	}
+}
+
+func WithUpdatedAt(time time.Time) UserOption {
+	return func(u *User) {
+		u.UpdatedAt = time
 	}
 }
 
