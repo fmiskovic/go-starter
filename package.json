@@ -1,7 +1,8 @@
 {
   "name": "go-starter-pack",
   "scripts": {
-    "css": "npm i tailwindcss && tailwindcss -i ./assets/app.css -o ./public/assets/app.css"
+    "install": "npm i tailwindcss",
+    "css": "tailwindcss -i ./assets/app.css -o ./public/assets/app.css"
   },
   "devDependencies": {
     "alpinejs": "^3.13.1",

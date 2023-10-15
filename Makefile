@@ -18,3 +18,6 @@ cover:
 
 css: 
 	npm run css
+
+cssi:
+	npm install

@@ -4,6 +4,7 @@ A fullstack starter pack for default ssr rendering, inspired by [anthdm's boreds
 The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)...
 
 ### Style
+- `make cssi` - runs `npm install` and install tailwind
 - `make css` - generates css file: ./public/assets/app.css
 
 
