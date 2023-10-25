@@ -2,19 +2,19 @@ module github.com/fmiskovic/go-starter
 
 go 1.21
 
-toolchain go1.21.0
+toolchain go1.21.3
 
 require (
 	github.com/gofiber/fiber/v2 v2.49.2
 	github.com/gofiber/template/django/v3 v3.1.6
 	github.com/joho/godotenv v1.5.1
-	github.com/urfave/cli v1.22.14
 	github.com/urfave/cli/v2 v2.25.7
 )
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 )
 
