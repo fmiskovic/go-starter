@@ -1,3 +1,6 @@
+https://github.com/fmiskovic/go-starter/actions/workflows/go.yml/badge.svg
+
+
 # Go Starter
 A fullstack starter pack for default ssr rendering, inspired by [anthdm's boredstack](https://github.com/anthdm/boredstack).
 
