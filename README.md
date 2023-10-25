@@ -1,4 +1,4 @@
-https://github.com/fmiskovic/go-starter/actions/workflows/go.yml/badge.svg
+![status workflow](https://github.com/fmiskovic/go-starter/actions/workflows/go.yml/badge.svg)
 
 
 # Go Starter
