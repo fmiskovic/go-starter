@@ -1,8 +1,11 @@
 build:
-	@go build -o bin/app ./cmd/app/
+	@go build -o bin/app ./cmd/
 
 run: build
-	@./bin/app
+	@./bin/app serve -addr=$(addr)
+
+db: build
+	@./bin/app db $(cmd)
 
 clear:
 	@rm -rf bin

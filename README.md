@@ -1,7 +1,7 @@
 # Go Starter
 A fullstack starter pack for default ssr rendering, inspired by [anthdm's boredstack](https://github.com/anthdm/boredstack).
 
-The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)...
+The full-stack is: GO, Fiber, Bun, Postgres, HTML, Tailwind CSS and AlpineJS.
 
 ### Style
 - `make cssi` - runs `npm install` and install tailwind
@@ -9,10 +9,10 @@ The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)
 
 
 ### Build and Run commands
-- `make run` - will build and run everything, check `http://localhost:3000`
+- `make run` - will build and run everything, visit address: `http://localhost:8080`
 
 ### Environment variables
-- `HTTP_LISTEN_ADDR`  - default is `:3000`
+- `HTTP_LISTEN_ADDR`  - default is `:8080`
 - `PRODUCTION` - default is `false`
 - `DB_PASSWORD`
 - `DB_USER`
@@ -20,5 +20,7 @@ The stack is: GO, Fiber, Postgres, HTML, Tailwind CSS, HTML and AlpineJS (maybe)
 - `DB_HOST`
 
 ### TODO
-- Add AlpineJS
-- Add tests
+- Add integration db tests
+- Add integration handler tests
+- Swagger for API
+- Add AlpineJS entity handling

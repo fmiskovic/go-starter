@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  full_name VARCHAR(255),
+  date_of_birth DATE,
+  location VARCHAR(255),
+  gender VARCHAR(10),
+  enabled BOOLEAN NOT NULL DEFAULT TRUE
+);

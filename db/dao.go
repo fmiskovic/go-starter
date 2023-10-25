@@ -14,6 +14,7 @@ const (
 	DESC
 )
 
+
 type Order struct {
 	Property   string
 	Direction  Direction

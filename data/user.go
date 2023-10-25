@@ -4,9 +4,9 @@ import "time"
 
 type User struct {
 	Entity
-	Email       string    `json:"email"`
-	FullName    string    `json:"fullname"`
-	DateOfBirth time.Time `json:"dateOfBirth"`
+	Email       string    `bun:"email,unique" json:"email"`
+	FullName    string    `bun:"@full_name" json:"fullname"`
+	DateOfBirth time.Time `bun:"@date_of_birth" json:"dateOfBirth"`
 	Location    string    `json:"location"`
 	Gender      Gender    `json:"gender"`
 	Enabled     bool      `json:"enabled"`

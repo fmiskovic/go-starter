@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"sync"
 
@@ -17,13 +18,19 @@ import (
 
 var Bun *bun.DB
 
-func Init() {
+func init() {
+	fmt.Println("initializing db connection...")
+
+	if err := util.LoadEnvVars(); err != nil {
+		log.Fatal(err)
+	}
+
 	var (
 		user     = os.Getenv("DB_USER")
 		password = os.Getenv("DB_PASSWORD")
 		host     = os.Getenv("DB_HOST")
 		name     = os.Getenv("DB_NAME")
-		uri      = fmt.Sprintf("postgresql://%s:%s@%s/%s", user, password, host, name)
+		uri      = fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, password, host, name)
 		sqldb    = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(uri)))
 		once     = sync.Once{}
 	)
