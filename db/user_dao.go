@@ -60,7 +60,11 @@ func (dao *UserDao) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(Timeout))
 	defer cancel()
 
-	dao.db.NewDelete().Where("id = ?", id).Exec(ctx)
+	_, err := dao.db.NewDelete().Where("id = ?", id).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
