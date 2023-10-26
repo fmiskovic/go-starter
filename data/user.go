@@ -1,8 +1,14 @@
 package data
 
-import "time"
+import (
+	"time"
+
+	"github.com/uptrace/bun"
+)
 
 type User struct {
+	bun.BaseModel `bun:"table:users,alias:u"`
+
 	Entity
 	Email       string    `bun:"email,unique" json:"email"`
 	FullName    string    `bun:"@full_name" json:"fullname"`

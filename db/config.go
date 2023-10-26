@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/fmiskovic/go-starter/util"
 	_ "github.com/lib/pq"
@@ -18,9 +19,9 @@ import (
 
 var Bun *bun.DB
 
-func init() {
-	fmt.Println("initializing db connection...")
+const Timeout = time.Second * 10
 
+func init() {
 	if err := util.LoadEnvVars(); err != nil {
 		log.Fatal(err)
 	}
