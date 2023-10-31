@@ -12,8 +12,8 @@ type User struct {
 
 	domain.Entity
 	Email       string    `bun:"email,unique" json:"email"`
-	FullName    string    `bun:"@full_name" json:"fullname"`
-	DateOfBirth time.Time `bun:"@date_of_birth" json:"dateOfBirth"`
+	FullName    string    `bun:"full_name" json:"fullname"`
+	DateOfBirth time.Time `bun:"date_of_birth" json:"dateOfBirth"`
 	Location    string    `json:"location"`
 	Gender      Gender    `json:"gender"`
 	Enabled     bool      `json:"enabled"`

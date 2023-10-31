@@ -13,8 +13,12 @@ type Repo struct {
 	db *bun.DB
 }
 
-func NewRepo() *Repo {
-	return &Repo{database.Bun}
+func NewRepo(db *bun.DB) *Repo {
+	return &Repo{db}
+}
+
+func NewDefaultRepo() *Repo {
+	return &Repo{database.ConnectDefault()}
 }
 
 // GetById returns user queried by id

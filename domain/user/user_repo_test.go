@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
-	"os"
+	"github.com/uptrace/bun"
 	"testing"
 	"time"
 
@@ -29,27 +29,44 @@ func TestUserRepo(t *testing.T) {
 	ctx := context.Background()
 
 	container := runPostgres(ctx)
-
-	// Clean up the container
 	defer terminatePostgres(ctx, container)
 
-	setEnvs(ctx, t, container)
-	runMigration(ctx, container)
+	port, err := container.MappedPort(ctx, "5432")
+	if err != nil {
+		panic(err)
+	}
 
-	repo := NewRepo()
+	host, err := container.Host(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	dbUri := fmt.Sprintf(
+		database.ConnString,
+		"dbadmin",
+		"dbadmin",
+		fmt.Sprintf("%s:%d", host, port.Int()),
+		"go-db",
+	)
+
+	bunDb := database.Connect(dbUri)
+
+	runMigration(ctx, bunDb)
+
+	repo := NewRepo(bunDb)
 
 	u := createUser()
 
-	err := repo.Save(ctx, u)
+	err = repo.Save(ctx, u)
 	if err != nil {
 		t.Errorf("test failed %v", err)
 	}
 
 }
 
-// runPostgres starts a PostgreSQL container and returns a handle to it.
+// runPostgres starts a Postgres container and returns a handle to it.
 func runPostgres(ctx context.Context) testcontainers.Container {
-	dbName := util.GetEnvOrDefault("DB_NAME", "go-database")
+	dbName := util.GetEnvOrDefault("DB_NAME", "go-db")
 	dbUser := util.GetEnvOrDefault("DB_USER", "dbadmin")
 	dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
 
@@ -86,42 +103,8 @@ func terminatePostgres(ctx context.Context, container testcontainers.Container) 
 	}
 }
 
-func setEnvs(ctx context.Context, t *testing.T, container testcontainers.Container) {
-	port, err := container.MappedPort(ctx, "5432")
-	if err != nil {
-		panic(err)
-	}
-
-	host, err := container.Host(ctx)
-	if err != nil {
-		panic(err)
-	}
-
-	os.Setenv("DB_HOST", fmt.Sprintf("%s:%d", host, port.Int()))
-	// t.Setenv("DB_HOST", fmt.Sprintf("%s:%d", host, port.Int()))
-}
-
-func runMigration(ctx context.Context, container testcontainers.Container) {
-	// p, err := container.MappedPort(context.Background(), "5432")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// h, err := container.Host(context.Background())
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// user := util.GetEnvOrDefault("DB_USER", "dbadmin")
-	// password := util.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
-	// host := util.GetEnvOrDefault("DB_HOST", fmt.Sprintf("%s:%d", h, p.Int()))
-	// name := util.GetEnvOrDefault("DB_NAME", "go-database")
-	// uri := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, password, host, name)
-	// sqldb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(uri)))
-
-	// database := bun.NewDB(sqldb, pgdialect.New())
-
-	migrator := migrate.NewMigrator(database.Bun, migrations.Migrations)
+func runMigration(ctx context.Context, db *bun.DB) {
+	migrator := migrate.NewMigrator(db, migrations.Migrations)
 
 	defer migrator.Unlock(ctx) //nolint:errcheck
 
