@@ -1,10 +1,12 @@
-package db
+package domain
 
-type Dao[ID any, T any] interface {
-	Get(id ID) (*T, error)
-	Save(entity T) error
-	Delete(id ID) error
-	GetPage(p Pageable) (Page[T], error)
+import "context"
+
+type Repo[ID any, T any] interface {
+	GetById(ctx context.Context, id ID) (*T, error)
+	Save(ctx context.Context, entity *T) error
+	DeleteById(ctx context.Context, id ID) error
+	GetPage(ctx context.Context, p Pageable) (Page[T], error)
 }
 
 type Direction uint8
@@ -13,7 +15,6 @@ const (
 	ASC Direction = iota
 	DESC
 )
-
 
 type Order struct {
 	Property   string

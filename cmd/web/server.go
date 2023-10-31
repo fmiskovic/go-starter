@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/fmiskovic/go-starter/handlers"
 	"github.com/fmiskovic/go-starter/util"
@@ -35,11 +34,8 @@ var serveCmd = &cli.Command{
 
 func listenAddrOrDefault(ctx *cli.Context) string {
 	addr := ctx.String("addr")
-	if strings.TrimSpace(addr) == "" {
-		addr = os.Getenv("HTTP_LISTEN_ADDR")
-		if strings.TrimSpace(addr) == "" {
-			return ":8080"
-		}
+	if util.IsBlank(addr) {
+		addr = util.GetEnvOrDefault("HTTP_LISTEN_ADDR", ":8080")
 	}
 	return addr
 }

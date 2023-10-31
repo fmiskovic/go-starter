@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fmiskovic/go-starter/migrations"
+
 	"github.com/urfave/cli/v2"
 )
 

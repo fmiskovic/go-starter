@@ -1,10 +1,9 @@
-package db
+package database
 
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -21,16 +20,23 @@ var Bun *bun.DB
 
 const Timeout = time.Second * 10
 
+type Config struct {
+	User     string
+	Password string
+	Host     string
+	Name     string
+}
+
 func init() {
 	if err := util.LoadEnvVars(); err != nil {
-		log.Fatal(err)
+		slog.Warn("unable to locate .env file, default environment values will be used")
 	}
 
 	var (
-		user     = os.Getenv("DB_USER")
-		password = os.Getenv("DB_PASSWORD")
-		host     = os.Getenv("DB_HOST")
-		name     = os.Getenv("DB_NAME")
+		user     = util.GetEnvOrDefault("DB_USER", "dbadmin")
+		password = util.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
+		host     = util.GetEnvOrDefault("DB_HOST", "localhost:5432")
+		name     = util.GetEnvOrDefault("DB_NAME", "go-database")
 		uri      = fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, password, host, name)
 		sqldb    = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(uri)))
 		once     = sync.Once{}
