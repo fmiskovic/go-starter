@@ -55,7 +55,7 @@ func TestUserRepo(t *testing.T) {
 
 	u := createUser()
 
-	err = repo.Save(ctx, u)
+	err = repo.Create(ctx, u)
 	if err != nil {
 		t.Errorf("test failed %v", err)
 	}
