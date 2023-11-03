@@ -3,12 +3,12 @@ package user
 import (
 	"context"
 	"fmt"
+	database2 "github.com/fmiskovic/go-starter/internal/database"
+	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/uptrace/bun"
 	"testing"
 	"time"
 
-	"github.com/fmiskovic/go-starter/database"
-	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/fmiskovic/go-starter/util"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -23,33 +23,31 @@ func TestUserRepo(t *testing.T) {
 		return
 	}
 
-	// ctx, cancel := context.WithTimeout(context.Background(), Timeout)
-	// defer cancel()
-
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), Timeout)
+	defer cancel()
 
 	container := runPostgres(ctx)
 	defer terminatePostgres(ctx, container)
-
-	port, err := container.MappedPort(ctx, "5432")
-	if err != nil {
-		panic(err)
-	}
 
 	host, err := container.Host(ctx)
 	if err != nil {
 		panic(err)
 	}
 
+	port, err := container.MappedPort(ctx, "5432")
+	if err != nil {
+		panic(err)
+	}
+
 	dbUri := fmt.Sprintf(
-		database.ConnString,
+		database2.ConnString,
 		"dbadmin",
 		"dbadmin",
 		fmt.Sprintf("%s:%d", host, port.Int()),
 		"go-db",
 	)
 
-	bunDb := database.Connect(dbUri)
+	bunDb := database2.Connect(dbUri)
 
 	runMigration(ctx, bunDb)
 

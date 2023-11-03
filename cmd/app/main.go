@@ -1,10 +1,9 @@
 package main
 
 import (
+	"github.com/fmiskovic/go-starter/migrations"
 	"log"
 	"os"
-
-	"github.com/fmiskovic/go-starter/migrations"
 
 	"github.com/urfave/cli/v2"
 )
@@ -14,8 +13,8 @@ func main() {
 		Name: "app",
 
 		Commands: []*cli.Command{
-			serveCmd,
-			NewMigrationCmd(migrations.Migrations),
+			newServeCmd(),
+			newMigrationCmd(migrations.Migrations),
 		},
 	}
 	if err := app.Run(os.Args); err != nil {

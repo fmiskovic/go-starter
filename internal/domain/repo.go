@@ -4,7 +4,8 @@ import "context"
 
 type Repo[ID any, T any] interface {
 	GetById(ctx context.Context, id ID) (*T, error)
-	Save(ctx context.Context, entity *T) error
+	Create(ctx context.Context, entity *T) error
+	Update(ctx context.Context, entity *T) error
 	DeleteById(ctx context.Context, id ID) error
 	GetPage(ctx context.Context, p Pageable) (Page[T], error)
 }

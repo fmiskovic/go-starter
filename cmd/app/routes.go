@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/fmiskovic/go-starter/handlers"
+	"github.com/fmiskovic/go-starter/internal/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 

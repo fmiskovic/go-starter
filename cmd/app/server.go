@@ -2,34 +2,36 @@ package main
 
 import (
 	"fmt"
+	"github.com/fmiskovic/go-starter/internal/handlers"
 	"html/template"
 	"log"
 	"os"
 	"path/filepath"
 
-	"github.com/fmiskovic/go-starter/handlers"
 	"github.com/fmiskovic/go-starter/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/django/v3"
 	"github.com/urfave/cli/v2"
 )
 
-var serveCmd = &cli.Command{
-	Name:  "serve",
-	Usage: "start API server",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:  "addr",
-			Value: ":8080",
-			Usage: "serve address",
+func newServeCmd() *cli.Command {
+	return &cli.Command{
+		Name:  "serve",
+		Usage: "start API server",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "addr",
+				Value: ":8080",
+				Usage: "serve address",
+			},
 		},
-	},
-	Action: func(ctx *cli.Context) error {
-		app := initApp()
-		listenAddr := listenAddrOrDefault(ctx)
-		fmt.Printf("app is running in %s environment and listening on: %s\n", util.AppEnv(), listenAddr)
-		return app.Listen(listenAddr)
-	},
+		Action: func(ctx *cli.Context) error {
+			app := initApp()
+			listenAddr := listenAddrOrDefault(ctx)
+			fmt.Printf("app is running in %s environment and listening on: %s\n", util.AppEnv(), listenAddr)
+			return app.Listen(listenAddr)
+		},
+	}
 }
 
 func listenAddrOrDefault(ctx *cli.Context) string {
