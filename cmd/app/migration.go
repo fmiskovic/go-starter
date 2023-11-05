@@ -11,7 +11,7 @@ import (
 
 func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 	return &cli.Command{
-		Name:  "database",
+		Name:  "db",
 		Usage: "database migrations",
 		Subcommands: []*cli.Command{
 			{

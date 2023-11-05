@@ -1,10 +1,15 @@
 package user
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+)
 
 func InitRoutes(repo UserRepo, app *fiber.App) {
-	app.Get("/user/:id", HandleGetById(repo))
-	app.Delete("/user/:id", HandleDeleteById(repo))
-	app.Post("/user", HandleCreate(repo))
-	app.Put("/user", HandleUpdate(repo))
+	api := app.Group("/api")
+	v1 := api.Group("/v1")
+
+	v1.Get("/user/:id", HandleGetById(repo))
+	v1.Delete("/user/:id", HandleDeleteById(repo))
+	v1.Post("/user", HandleCreate(repo))
+	v1.Put("/user", HandleUpdate(repo))
 }

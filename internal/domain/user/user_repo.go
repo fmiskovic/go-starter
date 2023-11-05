@@ -12,8 +12,8 @@ type UserRepo struct {
 	db *bun.DB
 }
 
-func NewRepo(db *bun.DB) *UserRepo {
-	return &UserRepo{db}
+func NewRepo(db *bun.DB) UserRepo {
+	return UserRepo{db}
 }
 
 // GetById returns user by id

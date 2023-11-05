@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"github.com/fmiskovic/go-starter/internal/database"
+	"github.com/fmiskovic/go-starter/internal/domain/user"
 	"github.com/fmiskovic/go-starter/internal/handlers"
 	"html/template"
 	"log"
@@ -27,6 +29,11 @@ func newServeCmd() *cli.Command {
 		},
 		Action: func(ctx *cli.Context) error {
 			app := initApp()
+			// init user api handlers
+			user.InitRoutes(user.NewRepo(database.DbBun), app)
+			// init static handlers
+			initRoutes(app)
+
 			listenAddr := listenAddrOrDefault(ctx)
 			fmt.Printf("app is running in %s environment and listening on: %s\n", util.AppEnv(), listenAddr)
 			return app.Listen(listenAddr)
@@ -43,14 +50,12 @@ func listenAddrOrDefault(ctx *cli.Context) string {
 }
 
 func initApp() *fiber.App {
-	app := fiber.New(fiber.Config{
+	return fiber.New(fiber.Config{
 		ErrorHandler:          handlers.ErrorHandler,
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
 	})
-	initRoutes(app)
-	return app
 }
 
 func initViews() *django.Engine {
