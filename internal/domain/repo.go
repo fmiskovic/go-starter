@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 type Repo[ID any, T any] interface {
 	GetById(ctx context.Context, id ID) (*T, error)
@@ -30,7 +33,7 @@ type Order struct {
 type OrderOption func(*Order)
 
 func NewOrder(opts ...OrderOption) *Order {
-	order := &Order{IgnoreCase: true, Direction: ASC}
+	order := &Order{IgnoreCase: false, Direction: ASC}
 	for _, opt := range opts {
 		opt(order)
 	}
@@ -70,11 +73,17 @@ type Page[T any] struct {
 }
 
 type Pageable struct {
-	Size   int
-	Offset int
-	Sort   Sort
+	Size              int
+	Offset            int
+	Sort              Sort
+	IncludeTotalCount bool
 }
 
-func Orders() []string {
-	return nil
+// Orders travers sort orders into a slice of strings in the following format, e.g. "prop1 ASC, prop2 DESC"
+func Orders(s Sort) []string {
+	var orders []string
+	for _, o := range s.Orders {
+		orders = append(orders, fmt.Sprintf("%s %s", o.Property, o.Direction))
+	}
+	return orders
 }
