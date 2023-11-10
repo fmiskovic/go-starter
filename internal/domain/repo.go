@@ -10,11 +10,15 @@ type Repo[ID any, T any] interface {
 	GetPage(ctx context.Context, p Pageable) (Page[T], error)
 }
 
-type Direction uint8
+type Direction string
 
 const (
-	ASC Direction = iota
-	DESC
+	ASC              Direction = "ASC"
+	DESC             Direction = "DESC"
+	ASC_NULLS_FIRST  Direction = "ASC NULLS FIRST"
+	DESC_NULLS_FIRST Direction = "DESC NULLS FIRST"
+	ASC_NULLS_LAST   Direction = "ASC NULLS LAST"
+	DESC_NULLS_LAST  Direction = "DESC NULLS LAST"
 )
 
 type Order struct {
@@ -60,13 +64,17 @@ func NewSort(order ...Order) *Sort {
 }
 
 type Page[T any] struct {
-	TotalPages    int64
-	TotalElements int64
+	TotalPages    int
+	TotalElements int
 	Elements      []T
 }
 
 type Pageable struct {
-	Size   int64
-	Offset int64
+	Size   int
+	Offset int
 	Sort   Sort
+}
+
+func Orders() []string {
+	return nil
 }

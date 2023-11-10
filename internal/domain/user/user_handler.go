@@ -9,10 +9,14 @@ func HandleCreate(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		var u = new(User)
 		if err := c.BodyParser(u); err != nil {
-			return err
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
-		return repo.Create(c.Context(), u)
+		if err := repo.Create(c.Context(), u); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+
+		return toJson(c, u)
 	}
 }
 
@@ -20,10 +24,14 @@ func HandleUpdate(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		var u = new(User)
 		if err := c.BodyParser(u); err != nil {
-			return err
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
-		return repo.Update(c.Context(), u)
+		if err := repo.Update(c.Context(), u); err != nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+
+		return toJson(c, u)
 	}
 }
 
@@ -31,20 +39,20 @@ func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
-			//TODO error
+			return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
 		}
 
 		id, err := strconv.ParseInt(sId, 10, 64)
 		if err == nil {
-			//TODO error
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
-		user, err := repo.GetById(c.Context(), id)
+		u, err := repo.GetById(c.Context(), id)
 		if err == nil {
-			//TODO error
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 
-		return c.JSON(user)
+		return toJson(c, u)
 	}
 }
 
@@ -52,13 +60,26 @@ func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
-			//TODO error
+			return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
 		}
 
 		id, err := strconv.ParseInt(sId, 10, 64)
 		if err == nil {
-			//TODO error
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
-		return repo.DeleteById(c.Context(), id)
+
+		err = repo.DeleteById(c.Context(), id)
+		if err == nil {
+			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		}
+
+		return nil
 	}
+}
+
+func toJson(c *fiber.Ctx, u *User) error {
+	if err := c.JSON(u); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return nil
 }
