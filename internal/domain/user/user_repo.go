@@ -30,6 +30,9 @@ func (repo *UserRepo) GetById(ctx context.Context, id int64) (*User, error) {
 
 // Create new user
 func (repo *UserRepo) Create(ctx context.Context, u *User) error {
+	if u == nil {
+		return domain.NilEntityError
+	}
 	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
 		return err
 	}
@@ -39,6 +42,9 @@ func (repo *UserRepo) Create(ctx context.Context, u *User) error {
 
 // Update existing user
 func (repo *UserRepo) Update(ctx context.Context, u *User) error {
+	if u == nil {
+		return domain.NilEntityError
+	}
 	if _, err := repo.db.NewUpdate().Model(u).Where("id = ?", u.ID).Exec(ctx); err != nil {
 		return err
 	}

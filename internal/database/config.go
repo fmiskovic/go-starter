@@ -29,7 +29,7 @@ func init() {
 		User:     util.GetEnvOrDefault("DB_USER", "dbadmin"),
 		Password: util.GetEnvOrDefault("DB_PASSWORD", "dbadmin"),
 		Host:     util.GetEnvOrDefault("DB_HOST", "localhost:5432"),
-		Name:     util.GetEnvOrDefault("DB_NAME", "go-database"),
+		Name:     util.GetEnvOrDefault("DB_NAME", "go-db"),
 		Timeout:  time.Second * 10,
 	}
 }

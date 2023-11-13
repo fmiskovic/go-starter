@@ -2,120 +2,129 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	database2 "github.com/fmiskovic/go-starter/internal/database"
-	"github.com/fmiskovic/go-starter/migrations"
+	"github.com/fmiskovic/go-starter/internal/containers"
+	"github.com/fmiskovic/go-starter/internal/database"
+	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/util"
 	"github.com/uptrace/bun"
+	"log/slog"
+	"strings"
 	"testing"
 	"time"
-
-	"github.com/fmiskovic/go-starter/util"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
-	"github.com/uptrace/bun/migrate"
 )
 
-const Timeout = time.Second * 30
-
-func TestUserRepo(t *testing.T) {
+func TestUserRepo_Create(t *testing.T) {
 	// skip in short mode
 	if testing.Short() {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), Timeout)
-	defer cancel()
+	// setup test-containers
+	tearDown, ctx, bunDb := setUp(t)
+	defer tearDown(t)
 
-	container := runPostgres(ctx)
-	defer terminatePostgres(ctx, container)
-
-	host, err := container.Host(ctx)
-	if err != nil {
-		panic(err)
+	// setup test cases
+	type fields struct {
+		repo UserRepo
+	}
+	type args struct {
+		u *User
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		wantErr error
+	}{
+		{
+			name:    "given valid user should not return error",
+			fields:  fields{repo: NewRepo(bunDb)},
+			args:    args{u: createUser()},
+			wantErr: nil,
+		},
+		{
+			name:    "given nil user should return error",
+			fields:  fields{repo: NewRepo(bunDb)},
+			args:    args{u: nil},
+			wantErr: domain.NilEntityError,
+		},
+		{
+			name:    "given user with id should return error",
+			fields:  fields{repo: NewRepo(bunDb)},
+			args:    args{u: createUserWithId()},
+			wantErr: errors.New("duplicate key value violates unique constraint"),
+		},
 	}
 
-	port, err := container.MappedPort(ctx, "5432")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := NewRepo(bunDb)
+			err := repo.Create(ctx, tt.args.u)
+
+			if err != nil && !strings.Contains(err.Error(), tt.wantErr.Error()) {
+				t.Errorf("expected: %v, got: %v", tt.wantErr, err)
+			}
+		})
+	}
+}
+
+func setUp(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+
+	// start postgres container
+	postgres, err := containers.StartPostgresContainer(ctx)
 	if err != nil {
-		panic(err)
+		t.Fatalf("failed to start postgres container: %v", err)
 	}
 
-	dbUri := fmt.Sprintf(
-		database2.ConnString,
-		"dbadmin",
-		"dbadmin",
-		fmt.Sprintf("%s:%d", host, port.Int()),
-		"go-db",
-	)
+	var bunDb *bun.DB
+	for {
+		if postgres.IsRunning() {
+			slog.Info("postgres container is ready")
+			host, err := postgres.Host(ctx)
+			if err != nil {
+				panic(err)
+			}
 
-	bunDb := database2.Connect(dbUri)
+			port, err := postgres.MappedPort(ctx, "5432")
+			if err != nil {
+				panic(err)
+			}
 
-	runMigration(ctx, bunDb)
+			dbName := util.GetEnvOrDefault("DB_NAME", "test-db")
+			dbUser := util.GetEnvOrDefault("DB_USER", "test")
+			dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "test")
 
-	repo := NewRepo(bunDb)
+			dbUri := fmt.Sprintf(
+				database.ConnString,
+				dbUser,
+				dbPassword,
+				fmt.Sprintf("%s:%d", host, port.Int()),
+				dbName,
+			)
 
+			bunDb = database.Connect(dbUri)
+
+			if err := containers.MigrateDB(ctx, bunDb); err != nil {
+				t.Fatalf("db migration failed: %v", err)
+			}
+			break
+		}
+		slog.Info("waiting for postgres container...")
+	}
+
+	return func(t *testing.T) {
+		if err := containers.TerminateContainer(ctx, postgres); err != nil {
+			slog.Warn("failed to terminate container", err)
+		}
+		cancel()
+	}, ctx, bunDb
+}
+
+func createUserWithId() *User {
 	u := createUser()
-
-	err = repo.Create(ctx, u)
-	if err != nil {
-		t.Errorf("test failed %v", err)
-	}
-
-}
-
-// runPostgres starts a Postgres container and returns a handle to it.
-func runPostgres(ctx context.Context) testcontainers.Container {
-	dbName := util.GetEnvOrDefault("DB_NAME", "go-db")
-	dbUser := util.GetEnvOrDefault("DB_USER", "dbadmin")
-	dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
-
-	// Define a PostgreSQL container configuration.
-	req := testcontainers.ContainerRequest{
-		Image:        "postgres:alpine",
-		ExposedPorts: []string{"5432/tcp"},
-		Env: map[string]string{
-			"POSTGRES_USER":     dbUser,
-			"POSTGRES_PASSWORD": dbPassword,
-			"POSTGRES_DB":       dbName,
-		},
-		WaitingFor: wait.ForLog("database system is ready to accept connections"),
-	}
-
-	// Create and start the PostgreSQL container.
-	container, err := testcontainers.GenericContainer(
-		ctx,
-		testcontainers.GenericContainerRequest{
-			ContainerRequest: req,
-			Started:          true,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	return container
-}
-
-func terminatePostgres(ctx context.Context, container testcontainers.Container) {
-	if err := container.Terminate(ctx); err != nil {
-		panic(err)
-	}
-}
-
-func runMigration(ctx context.Context, db *bun.DB) {
-	migrator := migrate.NewMigrator(db, migrations.Migrations)
-
-	defer migrator.Unlock(ctx) //nolint:errcheck
-
-	if err := migrator.Init(ctx); err != nil {
-		panic(err)
-	}
-
-	group, err := migrator.Migrate(ctx)
-	if err != nil {
-		panic(err)
-	}
-	if group.IsZero() {
-		fmt.Printf("there are no new migrations to run (database is up to date)\n")
-	}
-	fmt.Printf("migrated to %s\n", group)
+	u.ID = 1
+	return u
 }
