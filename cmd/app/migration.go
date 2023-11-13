@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/fmiskovic/go-starter/internal/database"
 	"strings"
 
-	"github.com/fmiskovic/go-starter/db"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
 )
 
-func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
+func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 	return &cli.Command{
 		Name:  "db",
 		Usage: "database migrations",
@@ -18,7 +18,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "init",
 				Usage: "create migration tables",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					return migrator.Init(c.Context)
 				},
 			},
@@ -26,7 +26,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "migrate",
 				Usage: "migrate database",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					if err := migrator.Lock(c.Context); err != nil {
 						return err
 					}
@@ -48,7 +48,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "rollback",
 				Usage: "rollback the last migration group",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					if err := migrator.Lock(c.Context); err != nil {
 						return err
 					}
@@ -70,7 +70,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "lock",
 				Usage: "lock migrations",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					return migrator.Lock(c.Context)
 				},
 			},
@@ -78,7 +78,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "unlock",
 				Usage: "unlock migrations",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					return migrator.Unlock(c.Context)
 				},
 			},
@@ -87,7 +87,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Usage: "create Go migration",
 				Action: func(c *cli.Context) error {
 					name := strings.Join(c.Args().Slice(), "_")
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					mf, err := migrator.CreateGoMigration(c.Context, name)
 					if err != nil {
 						return err
@@ -101,7 +101,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Usage: "create up and down SQL migrations",
 				Action: func(c *cli.Context) error {
 					name := strings.Join(c.Args().Slice(), "_")
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					files, err := migrator.CreateSQLMigrations(c.Context, name)
 					if err != nil {
 						return err
@@ -118,7 +118,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "status",
 				Usage: "print migrations status",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					ms, err := migrator.MigrationsWithStatus(c.Context)
 					if err != nil {
 						return err
@@ -133,7 +133,7 @@ func NewMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "mark_applied",
 				Usage: "mark migrations as applied without actually running them",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(db.Bun, migrations)
+					migrator := migrate.NewMigrator(database.DbBun, migrations)
 					group, err := migrator.Migrate(c.Context, migrate.WithNopMigration())
 					if err != nil {
 						return err

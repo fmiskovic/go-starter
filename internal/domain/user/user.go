@@ -1,6 +1,7 @@
-package data
+package user
 
 import (
+	"github.com/fmiskovic/go-starter/internal/domain"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -9,16 +10,16 @@ import (
 type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
-	Entity
+	domain.Entity
 	Email       string    `bun:"email,unique" json:"email"`
-	FullName    string    `bun:"@full_name" json:"fullname"`
-	DateOfBirth time.Time `bun:"@date_of_birth" json:"dateOfBirth"`
+	FullName    string    `bun:"full_name" json:"fullname"`
+	DateOfBirth time.Time `bun:"date_of_birth" json:"dateOfBirth"`
 	Location    string    `json:"location"`
 	Gender      Gender    `json:"gender"`
 	Enabled     bool      `json:"enabled"`
 }
 
-func NewUser(opts ...UserOption) *User {
+func NewUser(opts ...Option) *User {
 	u := &User{Enabled: false}
 
 	for _, opt := range opts {
@@ -28,51 +29,51 @@ func NewUser(opts ...UserOption) *User {
 	return u
 }
 
-type UserOption func(*User)
+type Option func(*User)
 
-func WithEmail(email string) UserOption {
+func WithEmail(email string) Option {
 	return func(u *User) {
 		u.Email = email
 	}
 }
 
-func WithFullName(fullName string) UserOption {
+func WithFullName(fullName string) Option {
 	return func(u *User) {
 		u.FullName = fullName
 	}
 }
 
-func WithDateOfBirth(dateOfBirth time.Time) UserOption {
+func WithDateOfBirth(dateOfBirth time.Time) Option {
 	return func(u *User) {
 		u.DateOfBirth = dateOfBirth
 	}
 }
 
-func WithLocation(location string) UserOption {
+func WithLocation(location string) Option {
 	return func(u *User) {
 		u.Location = location
 	}
 }
 
-func WithGender(gender Gender) UserOption {
+func WithGender(gender Gender) Option {
 	return func(u *User) {
 		u.Gender = gender
 	}
 }
 
-func WithCreatedAt(time time.Time) UserOption {
+func WithCreatedAt(time time.Time) Option {
 	return func(u *User) {
 		u.CreatedAt = time
 	}
 }
 
-func WithUpdatedAt(time time.Time) UserOption {
+func WithUpdatedAt(time time.Time) Option {
 	return func(u *User) {
 		u.UpdatedAt = time
 	}
 }
 
-func WithEnabled(enabled bool) UserOption {
+func WithEnabled(enabled bool) Option {
 	return func(u *User) {
 		u.Enabled = enabled
 	}

@@ -30,6 +30,7 @@ The full-stack is: GO, Fiber, Bun, Postgres, HTML, Tailwind CSS and AlpineJS.
 
 ### TODO
 - Add integration db tests
-- Add integration handler tests
+- Add unit tests
+- Error handling
 - Swagger for API
 - Add AlpineJS entity handling
