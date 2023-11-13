@@ -11,7 +11,7 @@ type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
 	domain.Entity
-	Email       string    `bun:"email,unique" json:"email"`
+	Email       string    `bun:"email,notnull,unique" json:"email"`
 	FullName    string    `bun:"full_name" json:"fullname"`
 	DateOfBirth time.Time `bun:"date_of_birth" json:"dateOfBirth"`
 	Location    string    `json:"location"`
