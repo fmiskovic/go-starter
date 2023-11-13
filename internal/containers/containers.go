@@ -12,11 +12,6 @@ import (
 	"log/slog"
 )
 
-type TestContainer struct {
-	ctx       context.Context
-	container testcontainers.Container
-}
-
 func StartPostgresContainer(ctx context.Context) (testcontainers.Container, error) {
 	dbName := util.GetEnvOrDefault("DB_NAME", "test-db")
 	dbUser := util.GetEnvOrDefault("DB_USER", "test")
