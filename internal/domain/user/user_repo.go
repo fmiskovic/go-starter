@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"github.com/fmiskovic/go-starter/internal/domain"
+	"time"
 
 	"github.com/uptrace/bun"
 )
@@ -17,7 +18,7 @@ func NewRepo(db *bun.DB) UserRepo {
 }
 
 // GetById returns user by id
-func (repo *UserRepo) GetById(ctx context.Context, id int64) (*User, error) {
+func (repo *UserRepo) GetById(ctx context.Context, id uint64) (*User, error) {
 	var user = &User{}
 
 	err := repo.db.NewSelect().Model(user).Where("? = ?", bun.Ident("id"), id).Scan(ctx)
@@ -45,6 +46,7 @@ func (repo *UserRepo) Update(ctx context.Context, u *User) error {
 	if u == nil {
 		return domain.NilEntityError
 	}
+	u.UpdatedAt = time.Now()
 	if _, err := repo.db.NewUpdate().Model(u).Where("id = ?", u.ID).Exec(ctx); err != nil {
 		return err
 	}

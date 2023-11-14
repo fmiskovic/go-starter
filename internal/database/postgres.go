@@ -9,6 +9,7 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bundebug"
 	"log/slog"
+	"runtime"
 	"sync"
 )
 
@@ -30,6 +31,9 @@ func init() {
 	)
 	fmt.Println(uri)
 	once.Do(func() {
+		maxOpenConns := runtime.NumCPU() + 1
+		sqldb.SetMaxOpenConns(maxOpenConns)
+		sqldb.SetMaxIdleConns(maxOpenConns)
 		DbBun = bun.NewDB(sqldb, pgdialect.New())
 		if util.IsDev() {
 			DbBun.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
@@ -44,16 +48,4 @@ func Connect(uri string) *bun.DB {
 		bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 	}
 	return bunDb
-}
-
-func ConnectDefault() *bun.DB {
-	uri := fmt.Sprintf(
-		"postgresql://%s:%s@%s/%s?sslmode=disable",
-		DefaultConfig.User,
-		DefaultConfig.Password,
-		DefaultConfig.Host,
-		DefaultConfig.Name,
-	)
-
-	return Connect(uri)
 }

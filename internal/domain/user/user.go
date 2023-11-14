@@ -12,10 +12,10 @@ type User struct {
 
 	domain.Entity
 	Email       string    `bun:"email,notnull,unique" json:"email"`
-	FullName    string    `bun:"full_name" json:"fullname"`
-	DateOfBirth time.Time `bun:"date_of_birth" json:"dateOfBirth"`
-	Location    string    `json:"location"`
-	Gender      Gender    `json:"gender"`
+	FullName    string    `bun:"full_name,nullzero" json:"fullname"`
+	DateOfBirth time.Time `bun:"date_of_birth,nullzero" json:"dateOfBirth"`
+	Location    string    `json:"location,nullzero"`
+	Gender      Gender    `json:"gender,nullzero"`
 	Enabled     bool      `json:"enabled"`
 }
 
@@ -30,6 +30,12 @@ func NewUser(opts ...Option) *User {
 }
 
 type Option func(*User)
+
+func WithId(id uint64) Option {
+	return func(u *User) {
+		u.ID = id
+	}
+}
 
 func WithEmail(email string) Option {
 	return func(u *User) {

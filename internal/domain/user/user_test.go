@@ -50,7 +50,5 @@ func createUser() *User {
 		WithDateOfBirth(bd),
 		WithLocation("Austria, Vienna"),
 		WithGender(MALE),
-		WithCreatedAt(time.Now()),
-		WithUpdatedAt(time.Now()),
 	)
 }
