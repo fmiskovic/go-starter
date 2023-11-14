@@ -55,8 +55,8 @@ func (repo *UserRepo) Update(ctx context.Context, u *User) error {
 }
 
 // DeleteById remove user by id
-func (repo *UserRepo) DeleteById(ctx context.Context, id int64) error {
-	if _, err := repo.db.NewDelete().Where("id = ?", id).Exec(ctx); err != nil {
+func (repo *UserRepo) DeleteById(ctx context.Context, id uint64) error {
+	if _, err := repo.db.NewDelete().Model(new(User)).Where("id = ?", id).Exec(ctx); err != nil {
 		return err
 	}
 

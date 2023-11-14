@@ -14,8 +14,8 @@ type User struct {
 	Email       string    `bun:"email,notnull,unique" json:"email"`
 	FullName    string    `bun:"full_name,nullzero" json:"fullname"`
 	DateOfBirth time.Time `bun:"date_of_birth,nullzero" json:"dateOfBirth"`
-	Location    string    `bun:"nullzero" json:"location"`
-	Gender      Gender    `bun:"nullzero" json:"gender"`
+	Location    string    `bun:"location,nullzero" json:"location"`
+	Gender      Gender    `bun:"gender,nullzero" json:"gender"`
 	Enabled     bool      `json:"enabled"`
 }
 

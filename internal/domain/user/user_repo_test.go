@@ -16,7 +16,7 @@ func TestUserRepo_GetById(t *testing.T) {
 		return
 	}
 
-	assert := is.NewRelaxed(t)
+	assert := is.New(t)
 
 	// setup test-containers
 	tearDown, ctx, bunDb := containers.SetUp(t)
@@ -67,13 +67,76 @@ func TestUserRepo_GetById(t *testing.T) {
 	}
 }
 
+func TestUserRepo_DeleteById(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	assert := is.New(t)
+
+	// setup test-containers
+	tearDown, ctx, bunDb := containers.SetUp(t)
+	defer tearDown(t)
+
+	repo := NewRepo(bunDb)
+
+	// setup test cases
+	type args struct {
+		id uint64
+	}
+	tests := []struct {
+		name    string
+		args    args
+		given   func(t *testing.T) error
+		verify  func(t *testing.T)
+		wantErr error
+	}{
+		{
+			name: "given valid id should delete user",
+			args: args{id: 1},
+			given: func(t *testing.T) error {
+				return repo.Create(ctx, newUser(WithEmail("test1@gmail.com")))
+			},
+			verify: func(t *testing.T) {
+				u, err := repo.GetById(ctx, 1)
+				assert.True(strings.Contains(err.Error(), "no rows in result set"))
+				assert.True(u == nil)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "given invalid id should not return error",
+			args: args{id: 111},
+			given: func(t *testing.T) error {
+				return repo.Create(ctx, newUser(WithEmail("test2@gmail.com")))
+			},
+			verify: func(t *testing.T) {
+				_, err := repo.GetById(ctx, 111)
+				assert.True(strings.Contains(err.Error(), "no rows in result set"))
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			err = repo.DeleteById(ctx, tt.args.id)
+			assert.Equal(tt.wantErr, err)
+		})
+	}
+}
+
 func TestUserRepo_Create(t *testing.T) {
 	// skip in short mode
 	if testing.Short() {
 		return
 	}
 
-	assert := is.NewRelaxed(t)
+	assert := is.New(t)
 
 	// setup test-containers
 	tearDown, ctx, bunDb := containers.SetUp(t)
@@ -131,7 +194,7 @@ func TestUserRepo_Update(t *testing.T) {
 		return
 	}
 
-	assert := is.NewRelaxed(t)
+	assert := is.New(t)
 
 	// setup test-containers
 	tearDown, ctx, bunDb := containers.SetUp(t)
@@ -158,12 +221,8 @@ func TestUserRepo_Update(t *testing.T) {
 			},
 			verify: func(t *testing.T) {
 				u, err := repo.GetById(ctx, 1)
-				if err != nil {
-					t.Errorf("failed to get user by id 1, error: %v", err)
-				}
-				if "test@test.com" != u.Email {
-					t.Errorf("expected: %v, got: %v", "test@test.com", u.Email)
-				}
+				assert.NoErr(err)
+				assert.Equal("test@test.com", u.Email)
 			},
 			wantErr: nil,
 		},
@@ -184,10 +243,7 @@ func TestUserRepo_Update(t *testing.T) {
 			},
 			verify: func(t *testing.T) {
 				_, err := repo.GetById(ctx, 111)
-
-				if err == nil || !strings.Contains(err.Error(), "no rows in result set") {
-					t.Errorf("expected: %v, got: %v", "no rows in result set", err)
-				}
+				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 			},
 			wantErr: nil,
 		},

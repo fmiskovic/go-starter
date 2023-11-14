@@ -63,7 +63,7 @@ func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
 		}
 
-		id, err := strconv.ParseInt(sId, 10, 64)
+		id, err := strconv.ParseUint(sId, 10, 64)
 		if err == nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
