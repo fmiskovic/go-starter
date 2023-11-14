@@ -33,7 +33,7 @@ type Order struct {
 type OrderOption func(*Order)
 
 func NewOrder(opts ...OrderOption) *Order {
-	order := &Order{IgnoreCase: false, Direction: ASC}
+	order := &Order{IgnoreCase: false, Property: "id", Direction: ASC}
 	for _, opt := range opts {
 		opt(order)
 	}
@@ -59,11 +59,11 @@ func WithIgnoreCase(ignore bool) OrderOption {
 }
 
 type Sort struct {
-	Orders []Order
+	Orders []*Order
 }
 
-func NewSort(order ...Order) *Sort {
-	return &Sort{Orders: order}
+func NewSort(order ...*Order) Sort {
+	return Sort{Orders: order}
 }
 
 type Page[T any] struct {
@@ -73,10 +73,9 @@ type Page[T any] struct {
 }
 
 type Pageable struct {
-	Size              int
-	Offset            int
-	Sort              Sort
-	IncludeTotalCount bool
+	Size   int
+	Offset int
+	Sort   Sort
 }
 
 // Orders travers sort orders into a slice of strings in the following format, e.g. "prop1 ASC, prop2 DESC"

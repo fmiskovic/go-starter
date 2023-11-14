@@ -66,30 +66,22 @@ func (repo *UserRepo) DeleteById(ctx context.Context, id uint64) error {
 // GetPage of users
 func (repo *UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Page[User], error) {
 	var users []User
-	err := repo.db.
+	count, err := repo.db.
 		NewSelect().
-		Model(&User{}).
+		Model(&users).
 		Limit(p.Size).
 		Offset(p.Offset).
 		Order(domain.Orders(p.Sort)...).
-		Scan(ctx, users)
+		ScanAndCount(ctx)
 
-	totalCount := 0
 	totalPages := 0
-	if p.IncludeTotalCount {
-		totalCount, err = repo.db.
-			NewSelect().
-			Model(&User{}).
-			Count(ctx)
-
-		if totalCount != 0 && p.Offset != 0 {
-			totalPages = totalCount / p.Offset
-		}
+	if count != 0 && p.Size != 0 {
+		totalPages = (len(users) + p.Size - 1) / p.Size
 	}
 
 	return domain.Page[User]{
 		TotalPages:    totalPages,
-		TotalElements: totalCount,
+		TotalElements: count,
 		Elements:      users,
 	}, err
 }

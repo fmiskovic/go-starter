@@ -266,6 +266,79 @@ func TestUserRepo_Update(t *testing.T) {
 	}
 }
 
+func TestUserRepo_GetPage(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	assert := is.New(t)
+
+	// setup test-containers
+	tearDown, ctx, bunDb := containers.SetUp(t)
+	defer tearDown(t)
+
+	repo := NewRepo(bunDb)
+
+	// setup test cases
+	type args struct {
+		pageable domain.Pageable
+	}
+	tests := []struct {
+		name    string
+		args    args
+		given   func(t *testing.T) error
+		want    string
+		wantErr error
+	}{
+		{
+			name: "given page request should return page of users",
+			args: args{
+				pageable: domain.Pageable{
+					Offset: 0,
+					Size:   5,
+					Sort:   domain.NewSort(domain.NewOrder(domain.WithProperty("email"))),
+				},
+			},
+			given: func(t *testing.T) error {
+				return repo.Create(ctx, newUser(WithEmail("test11@gmail.com")))
+			},
+			want:    "test11@gmail.com",
+			wantErr: nil,
+		},
+		{
+			name: "given page request without sort should return page of users",
+			args: args{
+				pageable: domain.Pageable{
+					Offset: 0,
+					Size:   5,
+				},
+			},
+			given: func(t *testing.T) error {
+				return repo.Create(ctx, newUser(WithEmail("test12@gmail.com")))
+			},
+			want:    "test12@gmail.com",
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			p, err := repo.GetPage(ctx, tt.args.pageable)
+
+			assert.Equal(tt.wantErr, err)
+			if err == nil {
+				assert.True(len(p.Elements) == 1)
+				assert.True(p.TotalPages == 1)
+				assert.Equal(p.Elements[0].Email, tt.want)
+			}
+		})
+	}
+}
+
 func newUser(opts ...Option) *User {
 	u := createUser()
 	for _, opt := range opts {
