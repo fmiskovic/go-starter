@@ -45,12 +45,12 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 - `make css` - generates css file: ./public/assets/app.css
 
 ### Variables
-- `HTTP_LISTEN_ADDR`  - default is `:8080`
-- `PRODUCTION` - default is `false`
-- `DB_PASSWORD` - default is `dbadmin`
-- `DB_USER` - default is `dbadmin`
-- `DB_NAME` - default is `go-db`
-- `DB_HOST` - defailt is `localhost`
+- `HTTP_LISTEN_ADDR`  - default is ***:8080***
+- `PRODUCTION` - default is ***false***
+- `DB_PASSWORD` - default is ***dbadmin***
+- `DB_USER` - default is ***dbadmin***
+- `DB_NAME` - default is ***go-db***
+- `DB_HOST` - defailt is ***localhost***
 
 ### TODO list
 - Unit tests
@@ -60,10 +60,18 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 - Add AlpineJS entity handling (CRUD operations)
 - Users view
 
+## Contributing
+
+Pull requests are welcome. For major changes, please [open an issue](https://github.com/fmiskovic/go-starter/issues/new) first to discuss what you would like to change.
+
+Please make sure that tests and lint checks are passing, and that your changes are well-tested.
+
+Thank you for contributing!
+
 ## License
 This project is licensed under the [MIT License](https://github.com/fmiskovic/go-starter/blob/main/LICENSE.md).
 
-### Credits
+## Credits
 Inspired by [anthdm's boredstack](https://github.com/anthdm/boredstack).
 
 
