@@ -2,8 +2,8 @@ package user
 
 import (
 	"errors"
-	"github.com/fmiskovic/go-starter/internal/containers"
 	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/internal/test"
 	"github.com/matryer/is"
 	"strings"
 	"testing"
@@ -18,8 +18,8 @@ func TestUserRepo_GetById(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-containers
-	tearDown, ctx, bunDb := containers.SetUp(t)
+	// setup test-test
+	tearDown, ctx, bunDb := test.SetUp(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -75,8 +75,8 @@ func TestUserRepo_DeleteById(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-containers
-	tearDown, ctx, bunDb := containers.SetUp(t)
+	// setup test-test
+	tearDown, ctx, bunDb := test.SetUp(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -138,8 +138,8 @@ func TestUserRepo_Create(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-containers
-	tearDown, ctx, bunDb := containers.SetUp(t)
+	// setup test-test
+	tearDown, ctx, bunDb := test.SetUp(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -196,8 +196,8 @@ func TestUserRepo_Update(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-containers
-	tearDown, ctx, bunDb := containers.SetUp(t)
+	// setup test-test
+	tearDown, ctx, bunDb := test.SetUp(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -274,8 +274,8 @@ func TestUserRepo_GetPage(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-containers
-	tearDown, ctx, bunDb := containers.SetUp(t)
+	// setup test-test
+	tearDown, ctx, bunDb := test.SetUp(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
