@@ -1,8 +1,8 @@
 package user
 
 import (
-	"errors"
 	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/pkg/errorx"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
@@ -12,11 +12,13 @@ func HandleCreate(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		var u = new(User)
 		if err := c.BodyParser(u); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserCreateReqBody)).Error())
 		}
 
 		if err := repo.Create(c.Context(), u); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			return fiber.NewError(fiber.StatusInternalServerError,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserCreate)).Error())
 		}
 
 		return toJson(c, u)
@@ -27,11 +29,13 @@ func HandleUpdate(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		var u = new(User)
 		if err := c.BodyParser(u); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserUpdateReqBody)).Error())
 		}
 
 		if err := repo.Update(c.Context(), u); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			return fiber.NewError(fiber.StatusInternalServerError,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserUpdate)).Error())
 		}
 
 		return toJson(c, u)
@@ -42,17 +46,20 @@ func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
-			return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithAppErr(ErrInvalidUserId)).Error())
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrInvalidUserId)).Error())
 		}
 
 		u, err := repo.GetById(c.Context(), id)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserGetById)).Error())
 		}
 
 		return toJson(c, u)
@@ -63,17 +70,20 @@ func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
-			return fiber.NewError(fiber.StatusBadRequest, "invalid user id")
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithAppErr(ErrInvalidUserId)).Error())
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest, err.Error())
+			return fiber.NewError(fiber.StatusBadRequest,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrInvalidUserId)).Error())
 		}
 
 		err = repo.DeleteById(c.Context(), id)
 		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			return fiber.NewError(fiber.StatusInternalServerError,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserDeleteById)).Error())
 		}
 
 		return nil
@@ -85,13 +95,13 @@ func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 		size, err := strconv.Atoi(c.Query("size", "10"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				errors.Join(errors.New("invalid size number"), err).Error())
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrInvalidPageSize)).Error())
 		}
 
 		offset, err := strconv.Atoi(c.Query("offset", "0"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				errors.Join(errors.New("invalid offset number"), err).Error())
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrInvalidPageOffset)).Error())
 		}
 
 		sort := resolveSort(c)
@@ -103,7 +113,8 @@ func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 		}
 		page, err := repo.GetPage(c.Context(), pageReq)
 		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+			return fiber.NewError(fiber.StatusInternalServerError,
+				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserGetPage)).Error())
 		}
 		return toJson(c, page)
 	}

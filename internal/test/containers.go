@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/fmiskovic/go-starter/internal/database"
 	"github.com/fmiskovic/go-starter/migrations"
-	"github.com/fmiskovic/go-starter/util"
+	"github.com/fmiskovic/go-starter/pkg/util"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"

@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/util"
+	"github.com/fmiskovic/go-starter/pkg/util"
 	"log/slog"
 	"runtime"
 	"strconv"

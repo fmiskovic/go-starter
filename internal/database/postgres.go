@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"github.com/fmiskovic/go-starter/util"
+	"github.com/fmiskovic/go-starter/pkg/util"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
