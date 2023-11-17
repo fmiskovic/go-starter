@@ -46,13 +46,13 @@ func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
-		if err == nil {
+		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
 		u, err := repo.GetById(c.Context(), id)
-		if err == nil {
-			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
 		return toJson(c, u)
@@ -67,12 +67,12 @@ func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
-		if err == nil {
+		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest, err.Error())
 		}
 
 		err = repo.DeleteById(c.Context(), id)
-		if err == nil {
+		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 		}
 

@@ -8,9 +8,9 @@ import (
 	"strconv"
 )
 
-var DefaultServerConfig ServerConfig
+var DefaultConfig AppConfig
 
-type ServerConfig struct {
+type AppConfig struct {
 	ListenAddr   string
 	DbConnString string
 	MaxOpenConn  int
@@ -47,7 +47,7 @@ func init() {
 		maxIdleConn = numCpu
 	}
 
-	DefaultServerConfig = NewServerConfig(
+	DefaultConfig = New(
 		WithListenAddr(listenAddr),
 		WithDbConnString(conn),
 		WithMaxOpenConn(maxOpenConn),
@@ -55,37 +55,37 @@ func init() {
 	)
 }
 
-// NewServerConfig construct ServerConfig with the given options
-func NewServerConfig(opts ...ServerConfigOption) ServerConfig {
-	conf := &ServerConfig{}
+// New constructs AppConfig with the given options
+func New(opts ...ServerConfigOption) AppConfig {
+	conf := &AppConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
 	return *conf
 }
 
-type ServerConfigOption func(*ServerConfig)
+type ServerConfigOption func(*AppConfig)
 
 func WithListenAddr(addr string) ServerConfigOption {
-	return func(c *ServerConfig) {
+	return func(c *AppConfig) {
 		c.ListenAddr = addr
 	}
 }
 
 func WithDbConnString(conn string) ServerConfigOption {
-	return func(c *ServerConfig) {
+	return func(c *AppConfig) {
 		c.DbConnString = conn
 	}
 }
 
 func WithMaxOpenConn(maxOpen int) ServerConfigOption {
-	return func(c *ServerConfig) {
+	return func(c *AppConfig) {
 		c.MaxOpenConn = maxOpen
 	}
 }
 
 func WithIdleOpenConn(maxIdle int) ServerConfigOption {
-	return func(c *ServerConfig) {
+	return func(c *AppConfig) {
 		c.MaxIdleConn = maxIdle
 	}
 }

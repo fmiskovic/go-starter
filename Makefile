@@ -1,8 +1,8 @@
 build:
-	@npm install && npm run css && go build -o bin/app ./cmd/app/
+	@go build -o bin/app ./cmd/app/
 
 run: build
-	@./bin/app serve -addr=$(addr)
+	@./bin/app serve
 
 db: build
 	@./bin/app db $(cmd)

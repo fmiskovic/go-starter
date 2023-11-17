@@ -1,50 +1,34 @@
 package server
 
 import (
-	"database/sql"
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/config"
 	"github.com/fmiskovic/go-starter/internal/database"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
 	"github.com/fmiskovic/go-starter/internal/handlers"
-	"github.com/fmiskovic/go-starter/util"
 	"github.com/gofiber/fiber/v2"
 	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/extra/bundebug"
-	"log/slog"
 )
 
 type Server struct {
-	Config config.ServerConfig
+	Config config.AppConfig
 	Db     *bun.DB
 	App    *fiber.App
 }
 
-func NewServer(config config.ServerConfig) *Server {
+func New(config config.AppConfig) *Server {
 	return &Server{Config: config}
 }
 
-func InitDb(s *Server) error {
-	dbConnString := s.Config.DbConnString
-	slog.Info("initializing db with conn string", "conn", dbConnString)
-
-	sqlDb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dbConnString)))
-
-	sqlDb.SetMaxOpenConns(s.Config.MaxOpenConn)
-	sqlDb.SetMaxIdleConns(s.Config.MaxIdleConn)
-	db := bun.NewDB(sqlDb, pgdialect.New())
-	if util.IsDev() {
-		db.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
-	}
-
-	s.Db = db
-
+func (s *Server) InitDb() error {
+	s.Db = database.Connect(s.Config.DbConnString, s.Config.MaxOpenConn, s.Config.MaxIdleConn)
 	return nil
 }
 
-func InitApp(s *Server) error {
+func (s *Server) InitApp() error {
+	if s.Db == nil {
+		return errors.New("DB must be initialized first")
+	}
 	app := fiber.New(fiber.Config{
 		ErrorHandler:          handlers.ErrorHandler,
 		DisableStartupMessage: true,
@@ -53,7 +37,7 @@ func InitApp(s *Server) error {
 	})
 
 	// init user api handlers
-	user.InitRoutes(user.NewRepo(database.DbBun), app)
+	user.InitRoutes(user.NewRepo(s.Db), app)
 	// init static handlers
 	initStaticRoutes(app)
 

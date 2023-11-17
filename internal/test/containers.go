@@ -11,6 +11,7 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"log/slog"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -50,7 +51,8 @@ func SetUp(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				dbName,
 			)
 
-			bunDb = database.Connect(dbUri)
+			openDbConn := runtime.NumCPU() + 1
+			bunDb = database.Connect(dbUri, openDbConn, openDbConn)
 
 			if err := migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)
