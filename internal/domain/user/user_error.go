@@ -3,7 +3,7 @@ package user
 import "errors"
 
 var (
-	ErrUserCreateReqBody = errors.New("failed to parse create user request body")
+	ErrUserReqBody       = errors.New("failed to parse user request body")
 	ErrUserCreate        = errors.New("failed to create user")
 	ErrUserUpdate        = errors.New("failed to update user")
 	ErrUserUpdateReqBody = errors.New("failed to parse update user request body")

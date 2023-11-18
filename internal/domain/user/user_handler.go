@@ -3,24 +3,33 @@ package user
 import (
 	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/pkg/errorx"
+	"github.com/fmiskovic/go-starter/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
 )
 
-func HandleCreate(repo UserRepo) func(c *fiber.Ctx) error {
+// HandleCreate persists and returns new user entity
+func HandleCreate(repo UserRepo, validator validator.Validator) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		var u = new(User)
-		if err := c.BodyParser(u); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserCreateReqBody)).Error())
+		r, err := parseRequestBody(c)
+		if err != nil {
+			return err
 		}
+
+		if errs := validator.Validate(r); len(errs) > 0 {
+			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
+		}
+
+		// convert request to user entity
+		u := toUser(r)
 
 		if err := repo.Create(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserCreate)).Error())
 		}
 
+		c.Status(fiber.StatusCreated)
 		return toJson(c, u)
 	}
 }
@@ -118,6 +127,15 @@ func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 		}
 		return toJson(c, page)
 	}
+}
+
+func parseRequestBody(c *fiber.Ctx) (*Request, error) {
+	var r = new(Request)
+	if err := c.BodyParser(r); err != nil {
+		return nil, fiber.NewError(fiber.StatusBadRequest,
+			errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserReqBody)).Error())
+	}
+	return r, nil
 }
 
 func toJson(c *fiber.Ctx, t interface{}) error {

@@ -16,7 +16,9 @@ import (
 	"time"
 )
 
-func SetUp(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
+func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
+	t.Helper()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 
 	// start postgres container

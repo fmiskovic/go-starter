@@ -6,6 +6,7 @@ import (
 	"github.com/fmiskovic/go-starter/internal/database"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
 	"github.com/fmiskovic/go-starter/internal/handlers"
+	"github.com/fmiskovic/go-starter/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/uptrace/bun"
 )
@@ -37,7 +38,7 @@ func (s *Server) InitApp() error {
 	})
 
 	// init user api handlers
-	user.InitRoutes(user.NewRepo(s.Db), app)
+	user.InitRoutes(user.NewRepo(s.Db), validator.New(), app)
 	// init static handlers
 	initStaticRoutes(app)
 

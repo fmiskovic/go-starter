@@ -19,7 +19,7 @@ func TestUserRepo_GetById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup test-test
-	tearDown, ctx, bunDb := test.SetUp(t)
+	tearDown, ctx, bunDb := test.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -76,7 +76,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup test-test
-	tearDown, ctx, bunDb := test.SetUp(t)
+	tearDown, ctx, bunDb := test.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -139,7 +139,7 @@ func TestUserRepo_Create(t *testing.T) {
 	assert := is.New(t)
 
 	// setup test-test
-	tearDown, ctx, bunDb := test.SetUp(t)
+	tearDown, ctx, bunDb := test.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -197,7 +197,7 @@ func TestUserRepo_Update(t *testing.T) {
 	assert := is.New(t)
 
 	// setup test-test
-	tearDown, ctx, bunDb := test.SetUp(t)
+	tearDown, ctx, bunDb := test.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
@@ -275,7 +275,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 	assert := is.New(t)
 
 	// setup test-test
-	tearDown, ctx, bunDb := test.SetUp(t)
+	tearDown, ctx, bunDb := test.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewRepo(bunDb)
