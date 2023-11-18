@@ -204,21 +204,47 @@ func TestHandleGetById(t *testing.T) {
 }
 
 func TestHandleGetPage(t *testing.T) {
-	type args struct {
-		repo UserRepo
-	}
+	assert := is.New(t)
+
+	bunDb, app := test.SetUpServer(t)
+
+	repo := NewRepo(bunDb)
+	app.Get("/user", HandleGetPage(repo))
+
 	tests := []struct {
-		name string
-		args args
-		want func(c *fiber.Ctx) error
+		name     string
+		route    string
+		given    func(t *testing.T) error
+		wantCode int
+		verify   func(t *testing.T, res *http.Response)
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "given valid request should return 200",
+			route: "/user",
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//if got := HandleGetPage(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("HandleGetPage() = %v, want %v", got, tt.want)
-			//}
+			// given
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			req := httptest.NewRequest("GET", tt.route, nil)
+			//req.Header.Add("Content-Type", "application/json")
+
+			// when
+			res, err := app.Test(req, 1000)
+			// then
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+			tt.verify(t, res)
 		})
 	}
 }

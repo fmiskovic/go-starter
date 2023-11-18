@@ -161,6 +161,9 @@ func toJson(c *fiber.Ctx, t interface{}) error {
 func resolveSort(c *fiber.Ctx) domain.Sort {
 	// extract sort parameters from query parameters
 	sortParam := c.Query("sort", "")
+	if sortParam == "" {
+		return domain.NewSort()
+	}
 	// split the sort parameter into individual sort orderParams
 	orderParams := strings.Split(sortParam, ",")
 

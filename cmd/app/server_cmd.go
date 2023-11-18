@@ -4,7 +4,6 @@ import (
 	"github.com/fmiskovic/go-starter/internal/config"
 	"github.com/fmiskovic/go-starter/internal/server"
 	"github.com/urfave/cli/v2"
-	"log/slog"
 )
 
 func newServeCmd() *cli.Command {
@@ -19,12 +18,7 @@ func newServeCmd() *cli.Command {
 			if err := srv.InitApp(); err != nil {
 				return err
 			}
-
-			err := srv.Start()
-			if err == nil {
-				slog.Info("the app is up and running...", "address", srv.Config.ListenAddr)
-			}
-			return err
+			return srv.Start()
 		},
 	}
 }

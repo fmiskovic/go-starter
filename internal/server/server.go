@@ -9,6 +9,7 @@ import (
 	"github.com/fmiskovic/go-starter/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/uptrace/bun"
+	"log/slog"
 )
 
 type Server struct {
@@ -55,5 +56,6 @@ func (s *Server) Start() error {
 		return errors.New("server is not ready")
 	}
 
+	slog.Info("the app is up and running...", "address", s.Config.ListenAddr)
 	return s.App.Listen(s.Config.ListenAddr)
 }
