@@ -2,6 +2,7 @@ package user
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/fmiskovic/go-starter/internal/test"
@@ -26,14 +27,14 @@ func TestHandleCreate(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *Request
+		reqBody  *Dto
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:     "given valid user request should return 201",
 			route:    "/user",
-			reqBody:  NewRequest(Email("test1@fake.com")),
+			reqBody:  NewDto(Email("test1@fake.com")),
 			wantCode: 201,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -43,10 +44,10 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				u := &User{}
-				err := json.NewDecoder(resBody).Decode(u)
+				dto := &Dto{}
+				err := json.NewDecoder(resBody).Decode(dto)
 				assert.NoErr(err)
-				assert.Equal(u.Email, "test1@fake.com")
+				assert.Equal(dto.Email, "test1@fake.com")
 			},
 		},
 		{
@@ -59,7 +60,7 @@ func TestHandleCreate(t *testing.T) {
 		{
 			name:     "given invalid user request email should return 400",
 			route:    "/user",
-			reqBody:  NewRequest(Email("")),
+			reqBody:  NewDto(Email("")),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
@@ -73,6 +74,68 @@ func TestHandleCreate(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 
 			res, err := app.Test(req, 1000)
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+			tt.verify(t, res)
+		})
+	}
+}
+
+func TestHandleUpdate(t *testing.T) {
+	assert := is.New(t)
+
+	bunDb, app := test.SetUpServer(t)
+
+	repo := NewRepo(bunDb)
+	valid := validator.New()
+	app.Put("/user", HandleUpdate(repo, valid))
+
+	tests := []struct {
+		name     string
+		route    string
+		reqBody  *Dto
+		given    func(t *testing.T) error
+		wantCode int
+		verify   func(t *testing.T, res *http.Response)
+	}{
+		{
+			name:     "given valid user request should return 200",
+			route:    "/user",
+			reqBody:  NewDto(Id(1), Email("test1@fake.com"), Location("Vienna")),
+			wantCode: 200,
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
+			},
+			verify: func(t *testing.T, res *http.Response) {
+				resBody := res.Body
+				defer func(body io.ReadCloser) {
+					if err := body.Close(); err != nil {
+						fmt.Println("error occurred on body close:", err.Error())
+					}
+				}(resBody)
+
+				dto := &Dto{}
+				err := json.NewDecoder(resBody).Decode(dto)
+				assert.NoErr(err)
+				assert.Equal(dto.Location, "Vienna")
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// given
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			reqJson, err := json.Marshal(tt.reqBody)
+			assert.NoErr(err)
+
+			req := httptest.NewRequest("PUT", tt.route, bytes.NewReader(reqJson))
+			req.Header.Add("Content-Type", "application/json")
+
+			// when
+			res, err := app.Test(req, 1000)
+			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
@@ -135,26 +198,6 @@ func TestHandleGetPage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			//if got := HandleGetPage(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
 			//	t.Errorf("HandleGetPage() = %v, want %v", got, tt.want)
-			//}
-		})
-	}
-}
-
-func TestHandleUpdate(t *testing.T) {
-	type args struct {
-		repo UserRepo
-	}
-	tests := []struct {
-		name string
-		args args
-		want func(c *fiber.Ctx) error
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			//if got := HandleUpdate(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("HandleUpdate() = %v, want %v", got, tt.want)
 			//}
 		})
 	}

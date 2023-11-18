@@ -13,5 +13,5 @@ func InitRoutes(repo UserRepo, validator validator.Validator, app *fiber.App) {
 	v1.Get("/user", HandleGetPage(repo))
 	v1.Delete("/user/:id", HandleDeleteById(repo))
 	v1.Post("/user", HandleCreate(repo, validator))
-	v1.Put("/user", HandleUpdate(repo))
+	v1.Put("/user", HandleUpdate(repo, validator))
 }

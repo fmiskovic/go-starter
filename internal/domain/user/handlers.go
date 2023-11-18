@@ -7,47 +7,59 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // HandleCreate persists and returns new user entity
 func HandleCreate(repo UserRepo, validator validator.Validator) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		r, err := parseRequestBody(c)
+		req, err := parseRequestBody(c)
 		if err != nil {
 			return err
 		}
 
-		if errs := validator.Validate(r); len(errs) > 0 {
+		if errs := validator.Validate(req); len(errs) > 0 {
 			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
 		}
 
 		// convert request to user entity
-		u := toUser(r)
+		user := toUser(req)
+		user.CreatedAt = time.Now()
+		user.UpdatedAt = time.Now()
 
-		if err := repo.Create(c.Context(), u); err != nil {
+		if err := repo.Create(c.Context(), user); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserCreate)).Error())
 		}
 
+		res := toDto(user)
 		c.Status(fiber.StatusCreated)
-		return toJson(c, u)
+		return toJson(c, res)
 	}
 }
 
-func HandleUpdate(repo UserRepo) func(c *fiber.Ctx) error {
+func HandleUpdate(repo UserRepo, validator validator.Validator) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		var u = new(User)
-		if err := c.BodyParser(u); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserUpdateReqBody)).Error())
+		req, err := parseRequestBody(c)
+		if err != nil {
+			return err
 		}
 
-		if err := repo.Update(c.Context(), u); err != nil {
+		if errs := validator.Validate(req); len(errs) > 0 {
+			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
+		}
+
+		// convert request to user entity
+		user := toUser(req)
+		user.UpdatedAt = time.Now()
+
+		if err := repo.Update(c.Context(), user); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserUpdate)).Error())
 		}
 
-		return toJson(c, u)
+		res := toDto(user)
+		return toJson(c, res)
 	}
 }
 
@@ -129,8 +141,8 @@ func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 	}
 }
 
-func parseRequestBody(c *fiber.Ctx) (*Request, error) {
-	var r = new(Request)
+func parseRequestBody(c *fiber.Ctx) (*Dto, error) {
+	var r = new(Dto)
 	if err := c.BodyParser(r); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest,
 			errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserReqBody)).Error())
