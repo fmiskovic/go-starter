@@ -120,6 +120,26 @@ func TestHandleUpdate(t *testing.T) {
 				assert.Equal(dto.Location, "Vienna")
 			},
 		},
+		{
+			name:    "given nil user request should return 400",
+			route:   "/user",
+			reqBody: nil,
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify:   func(t *testing.T, res *http.Response) {},
+		},
+		{
+			name:    "given invalid user request email should return 400",
+			route:   "/user",
+			reqBody: NewDto(Email("")),
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify:   func(t *testing.T, res *http.Response) {},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
