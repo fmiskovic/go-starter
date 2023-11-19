@@ -1,8 +1,6 @@
 ![go workflow](https://github.com/fmiskovic/go-starter/actions/workflows/go-ci.yml/badge.svg)
 ![lint workflow](https://github.com/fmiskovic/go-starter/actions/workflows/golangci-lint.yml/badge.svg)
 ___
-### ⚠️ WORK IN PROGRESS ⚠️
-___
 # Golang Fullstack Starter Pack
 
 ## Description
