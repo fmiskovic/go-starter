@@ -13,7 +13,6 @@ import (
 	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/internal/test"
 	"github.com/fmiskovic/go-starter/pkg/validator"
-	"github.com/gofiber/fiber/v2"
 	"github.com/matryer/is"
 )
 
@@ -166,41 +165,163 @@ func TestHandleUpdate(t *testing.T) {
 }
 
 func TestHandleDeleteById(t *testing.T) {
-	type args struct {
-		repo UserRepo
-	}
+	assert := is.New(t)
+
+	bunDb, app := test.SetUpServer(t)
+
+	repo := NewRepo(bunDb)
+	app.Delete("/user/:id", HandleDeleteById(repo))
+
 	tests := []struct {
-		name string
-		args args
-		want func(c *fiber.Ctx) error
+		name     string
+		route    string
+		given    func(t *testing.T) error
+		wantCode int
+		verify   func(t *testing.T, res *http.Response)
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "given user id should return 200 and delete user",
+			route: "/user/1",
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+				u, err := repo.GetById(context.Background(), 1)
+				assert.True(err != nil)
+				assert.True(u == nil)
+			},
+		},
+		{
+			name:  "given non-existing user id should return 200",
+			route: "/user/11",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
+		{
+			name:  "given zero user id should return 400",
+			route: "/user/0",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
+		{
+			name:  "given invalid user id should return 400",
+			route: "/user/s",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//if got := HandleDeleteById(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("HandleDeleteById() = %v, want %v", got, tt.want)
-			//}
+			// given
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			req := httptest.NewRequest("DELETE", tt.route, nil)
+
+			// when
+			res, err := app.Test(req, 1000)
+			// then
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+			tt.verify(t, res)
 		})
 	}
 }
 
 func TestHandleGetById(t *testing.T) {
-	type args struct {
-		repo UserRepo
-	}
+	assert := is.New(t)
+
+	bunDb, app := test.SetUpServer(t)
+
+	repo := NewRepo(bunDb)
+	app.Get("/user/:id", HandleGetById(repo))
+
 	tests := []struct {
-		name string
-		args args
-		want func(c *fiber.Ctx) error
+		name     string
+		route    string
+		given    func(t *testing.T) error
+		wantCode int
+		verify   func(t *testing.T, res *http.Response)
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "given user id should return 200 and user dto",
+			route: "/user/1",
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+				resBody := res.Body
+				defer func(body io.ReadCloser) {
+					if err := body.Close(); err != nil {
+						fmt.Println("error occurred on body close:", err.Error())
+					}
+				}(resBody)
+
+				dto := &Dto{}
+				err := json.NewDecoder(resBody).Decode(dto)
+				assert.NoErr(err)
+				assert.Equal(dto.Email, "test1@fake.com")
+			},
+		},
+		{
+			name:  "given non-existing user id should return 404",
+			route: "/user/11",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 404,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
+		{
+			name:  "given zero user id should return 400",
+			route: "/user/0",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
+		{
+			name:  "given invalid user id should return 400",
+			route: "/user/s",
+			given: func(t *testing.T) error {
+				return nil
+			},
+			wantCode: 400,
+			verify: func(t *testing.T, res *http.Response) {
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//if got := HandleGetById(tt.args.repo); !reflect.DeepEqual(got, tt.want) {
-			//	t.Errorf("HandleGetById() = %v, want %v", got, tt.want)
-			//}
+			// given
+			err := tt.given(t)
+			assert.NoErr(err)
+
+			req := httptest.NewRequest("GET", tt.route, nil)
+
+			// when
+			res, err := app.Test(req, 1000)
+			// then
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+			tt.verify(t, res)
 		})
 	}
 }
@@ -293,7 +414,6 @@ func TestHandleGetPage(t *testing.T) {
 			assert.NoErr(err)
 
 			req := httptest.NewRequest("GET", tt.route, nil)
-			//req.Header.Add("Content-Type", "application/json")
 
 			// when
 			res, err := app.Test(req, 1000)

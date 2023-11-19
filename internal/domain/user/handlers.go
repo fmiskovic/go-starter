@@ -80,7 +80,7 @@ func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 
 		u, err := repo.GetById(c.Context(), id)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
+			return fiber.NewError(fiber.StatusNotFound,
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserGetById)).Error())
 		}
 

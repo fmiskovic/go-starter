@@ -55,8 +55,6 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 - `DB_MAX_OPEN_CONN` - default is ***num of cpu + 1***
 
 ### TODO list
-- Unit tests
-- Integration tests for handlers
 - Basic authentication and authorization
 - Swagger for API
 - Add AlpineJS entity handling (CRUD operations)
