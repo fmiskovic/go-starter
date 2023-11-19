@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"github.com/fmiskovic/go-starter/internal/handlers"
@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
-func initRoutes(app *fiber.App) {
+func initStaticRoutes(app *fiber.App) {
 	app.Static("/public", "./public")
 
 	app.Use(handlers.FlashMiddleware)

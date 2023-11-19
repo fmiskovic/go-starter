@@ -1,21 +1,24 @@
-package containers
+package test
 
 import (
 	"context"
 	"fmt"
 	"github.com/fmiskovic/go-starter/internal/database"
 	"github.com/fmiskovic/go-starter/migrations"
-	"github.com/fmiskovic/go-starter/util"
+	"github.com/fmiskovic/go-starter/pkg/util"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"log/slog"
+	"runtime"
 	"testing"
 	"time"
 )
 
-func SetUp(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
+func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
+	t.Helper()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 
 	// start postgres container
@@ -50,7 +53,8 @@ func SetUp(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				dbName,
 			)
 
-			bunDb = database.Connect(dbUri)
+			openDbConn := runtime.NumCPU() + 1
+			bunDb = database.Connect(dbUri, openDbConn, openDbConn)
 
 			if err := migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)

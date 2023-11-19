@@ -47,7 +47,7 @@ func (repo *UserRepo) Update(ctx context.Context, u *User) error {
 		return domain.NilEntityError
 	}
 	u.UpdatedAt = time.Now()
-	if _, err := repo.db.NewUpdate().Model(u).Where("id = ?", u.ID).Exec(ctx); err != nil {
+	if _, err := repo.db.NewUpdate().Model(u).OmitZero().Where("id = ?", u.ID).Exec(ctx); err != nil {
 		return err
 	}
 

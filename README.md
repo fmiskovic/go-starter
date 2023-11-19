@@ -50,15 +50,18 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 - `DB_PASSWORD` - default is ***dbadmin***
 - `DB_USER` - default is ***dbadmin***
 - `DB_NAME` - default is ***go-db***
-- `DB_HOST` - defailt is ***localhost***
+- `DB_HOST` - defailt is ***localhost:5432***
+- `DB_MAX_IDLE_CONN` - default is ***num of cpu + 1***
+- `DB_MAX_OPEN_CONN` - default is ***num of cpu + 1***
 
 ### TODO list
-- Unit tests
-- Integration tests for handlers
 - Basic authentication and authorization
 - Swagger for API
 - Add AlpineJS entity handling (CRUD operations)
 - Users view
+- Email notifications
+- Push notifications
+- i18n
 
 ## Contributing
 
