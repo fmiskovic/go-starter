@@ -180,12 +180,12 @@ func TestHandleDeleteById(t *testing.T) {
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:  "given user id should return 200 and delete user",
+			name:  "given user id should return 204 and delete user",
 			route: "/user/1",
 			given: func(t *testing.T) error {
 				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
 			},
-			wantCode: 200,
+			wantCode: 204,
 			verify: func(t *testing.T, res *http.Response) {
 				u, err := repo.GetById(context.Background(), 1)
 				assert.True(err != nil)
@@ -193,12 +193,12 @@ func TestHandleDeleteById(t *testing.T) {
 			},
 		},
 		{
-			name:  "given non-existing user id should return 200",
+			name:  "given non-existing user id should return 204",
 			route: "/user/11",
 			given: func(t *testing.T) error {
 				return nil
 			},
-			wantCode: 200,
+			wantCode: 204,
 			verify: func(t *testing.T, res *http.Response) {
 			},
 		},
@@ -260,7 +260,7 @@ func TestHandleGetById(t *testing.T) {
 			name:  "given user id should return 200 and user dto",
 			route: "/user/1",
 			given: func(t *testing.T) error {
-				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
+				return repo.Create(context.Background(), &User{Email: "test1@fake.com", Gender: MALE})
 			},
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
@@ -275,6 +275,7 @@ func TestHandleGetById(t *testing.T) {
 				err := json.NewDecoder(resBody).Decode(dto)
 				assert.NoErr(err)
 				assert.Equal(dto.Email, "test1@fake.com")
+				assert.Equal(dto.Gender.numify(), MALE)
 			},
 		},
 		{

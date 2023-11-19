@@ -39,6 +39,7 @@ func HandleCreate(repo UserRepo, validator validator.Validator) func(c *fiber.Ct
 	}
 }
 
+// HandleUpdate updates existing user and returns updated
 func HandleUpdate(repo UserRepo, validator validator.Validator) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		req, err := parseRequestBody(c)
@@ -64,6 +65,7 @@ func HandleUpdate(repo UserRepo, validator validator.Validator) func(c *fiber.Ct
 	}
 }
 
+// HandleGetById retunrs user by specified id
 func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
@@ -84,10 +86,11 @@ func HandleGetById(repo UserRepo) func(c *fiber.Ctx) error {
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserGetById)).Error())
 		}
 
-		return toJson(c, u)
+		return toJson(c, toDto(u))
 	}
 }
 
+// HandleDeleteById removes user by specified id
 func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
@@ -108,10 +111,12 @@ func HandleDeleteById(repo UserRepo) func(c *fiber.Ctx) error {
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserDeleteById)).Error())
 		}
 
+		c.Status(fiber.StatusNoContent)
 		return nil
 	}
 }
 
+// HandleGetPage returns page of users
 func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		size, err := strconv.Atoi(c.Query("size", "10"))

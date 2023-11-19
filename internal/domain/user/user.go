@@ -1,8 +1,9 @@
 package user
 
 import (
-	"github.com/fmiskovic/go-starter/internal/domain"
 	"time"
+
+	"github.com/fmiskovic/go-starter/internal/domain"
 
 	"github.com/uptrace/bun"
 )
@@ -29,6 +30,19 @@ func (u *User) DisableIt() {
 }
 
 type Gender uint8
+
+func (g Gender) stringify() string {
+	switch g {
+	case 0:
+		return "Male"
+	case 1:
+		return "Female"
+	case 2:
+		return "Other"
+	default:
+		return "Other"
+	}
+}
 
 const (
 	MALE Gender = iota

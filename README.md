@@ -54,7 +54,6 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 
 ### TODO list
 - Basic authentication and authorization
-- Swagger for API
 - Add AlpineJS entity handling (CRUD operations)
 - Users view
 - Email notifications

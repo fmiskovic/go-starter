@@ -15,7 +15,7 @@ type Dto struct {
 	FullName    string    `json:"fullname"`
 	DateOfBirth time.Time `json:"dateOfBirth"`
 	Location    string    `json:"location"`
-	Gender      Gender    `json:"gender"`
+	Gender      GenderDto `json:"gender"`
 	Enabled     bool      `json:"enabled"`
 }
 
@@ -60,9 +60,24 @@ func Location(location string) DtoOption {
 	}
 }
 
-func Sex(gender Gender) DtoOption {
+func Sex(g Gender) DtoOption {
 	return func(r *Dto) {
-		r.Gender = gender
+		r.Gender = GenderDto(g.stringify())
+	}
+}
+
+type GenderDto string
+
+func (g GenderDto) numify() Gender {
+	switch g {
+	case "Male":
+		return MALE
+	case "Female":
+		return FEMALE
+	case "Other":
+		return OTHER
+	default:
+		return OTHER
 	}
 }
 
@@ -75,7 +90,7 @@ func toUser(r *Dto) *User {
 		FullName:    r.FullName,
 		DateOfBirth: r.DateOfBirth,
 		Location:    r.Location,
-		Gender:      r.Gender,
+		Gender:      r.Gender.numify(),
 		Enabled:     r.Enabled,
 	}
 }
@@ -87,7 +102,7 @@ func toDto(u *User) *Dto {
 		FullName:    u.FullName,
 		DateOfBirth: u.DateOfBirth,
 		Location:    u.Location,
-		Gender:      u.Gender,
+		Gender:      GenderDto(u.Gender.stringify()),
 		Enabled:     u.Enabled,
 	}
 }

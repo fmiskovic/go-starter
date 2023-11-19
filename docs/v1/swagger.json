@@ -1,0 +1,235 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "App API",
+      "version": "1.0.0"
+    },
+    "tags": [
+      {
+        "name": "User",
+        "description": "Endpoints related to user management"
+      }
+    ],
+    "paths": {
+      "/api/v1/user": {
+        "get": {
+          "tags": ["User"],
+          "summary": "Get a page of users",
+          "parameters": [
+            {
+              "name": "size",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 10
+              },
+              "description": "Number of elements per page"
+            },
+            {
+              "name": "offset",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 0
+              },
+              "description": "Number of elements to skip"
+            },
+            {
+              "name": "sort",
+              "in": "query",
+              "schema": {
+                "type": "string",
+                "default": "id ASC"
+              },
+              "description": "Sorting order (email ASC or email DESC)"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Page of users",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserPage"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        },
+        "post": {
+          "tags": ["User"],
+          "summary": "Create new user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        },
+        "put": {
+          "tags": ["User"],
+          "summary": "Update an existing user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        }
+      },
+      "/api/v1/user/{id}": {
+        "get": {
+          "tags": ["User"],
+          "summary": "Get user by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "description": "ID of the user to be retrieved"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/UserDto"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found"
+            },
+            "400": {
+              "description": "Bad request"
+            }
+          }
+        },
+        "delete": {
+          "tags": ["User"],
+          "summary": "Delete user by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "description": "ID of the user to be deleted"
+            }
+          ],
+          "responses": {
+            "204": {
+              "description": "User deleted successfully"
+            },
+            "400": {
+              "description": "Bad request"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "UserDto": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "fullname": {
+              "type": "string"
+            },
+            "dateOfBirth": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "location": {
+              "type": "string"
+            },
+            "gender": {
+              "$ref": "#/components/schemas/Gender"
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": ["email"]
+        },
+        "Gender": {
+          "type": "string",
+          "enum": ["Male", "Female", "Other"]
+        },
+        "UserPage": {
+          "type": "object",
+          "properties": {
+            "totalPages": {
+              "type": "integer"
+            },
+            "totalElements": {
+              "type": "integer"
+            },
+            "elements": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/UserDto"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  

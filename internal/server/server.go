@@ -2,14 +2,16 @@ package server
 
 import (
 	"errors"
+	"log/slog"
+
 	"github.com/fmiskovic/go-starter/internal/config"
 	"github.com/fmiskovic/go-starter/internal/database"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
 	"github.com/fmiskovic/go-starter/internal/handlers"
 	"github.com/fmiskovic/go-starter/pkg/validator"
+	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/uptrace/bun"
-	"log/slog"
 )
 
 type Server struct {
@@ -37,6 +39,13 @@ func (s *Server) InitApp() error {
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
 	})
+
+	// init swagger
+	app.Use(swagger.New(swagger.Config{
+		BasePath: "/api/v1/",
+		FilePath: "./docs/v1/swagger.json",
+		Path:     "docs",
+	}))
 
 	// init user api handlers
 	user.InitRoutes(user.NewRepo(s.Db), validator.New(), app)
