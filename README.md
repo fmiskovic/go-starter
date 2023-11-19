@@ -28,7 +28,7 @@ This project addresses the pain points associated with the initial setup of full
 
 ## How to build and run the project
 Since it is using postgres db, pre-condition is to have running postgres.
-If you want to run the app for the first time, follow the steps bellow, and it will bi accessible in [http://localhost:8080](http://localhost:8080)
+If you want to run the app for the first time, follow the steps bellow, and it will bi accessible here: [http://localhost:8080](http://localhost:8080) and Swagger docs here: [http://localhost:8080/api/v1/docs](http://localhost:8080/api/v1/docs)
 
 1) Run postgres db: ```docker run --name go-db -e POSTGRES_PASSWORD=dbadmin -e POSTGRES_USER=dbadmin -e PGDATA=/var/lib/postgresql/data -e POSTGRES_DB=go-db --volume=/var/lib/postgresql/data -p 5432:5432 -d postgres```
 2) Build the app: ```make build```
