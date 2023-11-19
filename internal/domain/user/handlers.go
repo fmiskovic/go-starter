@@ -1,13 +1,14 @@
 package user
 
 import (
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/pkg/errorx"
 	"github.com/fmiskovic/go-starter/pkg/validator"
 	"github.com/gofiber/fiber/v2"
-	"strconv"
-	"strings"
-	"time"
 )
 
 // HandleCreate persists and returns new user entity
@@ -137,7 +138,7 @@ func HandleGetPage(repo UserRepo) func(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				errorx.New(errorx.WithSvcErr(err), errorx.WithAppErr(ErrUserGetPage)).Error())
 		}
-		return toJson(c, page)
+		return toJson(c, toPageDto(page))
 	}
 }
 

@@ -5,14 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/test"
-	"github.com/fmiskovic/go-starter/pkg/validator"
-	"github.com/gofiber/fiber/v2"
-	"github.com/matryer/is"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/internal/test"
+	"github.com/fmiskovic/go-starter/pkg/validator"
+	"github.com/gofiber/fiber/v2"
+	"github.com/matryer/is"
 )
 
 func TestHandleCreate(t *testing.T) {
@@ -219,14 +221,68 @@ func TestHandleGetPage(t *testing.T) {
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:  "given valid request should return 200",
+			name:  "given empty pageable should return 200",
 			route: "/user",
 			given: func(t *testing.T) error {
 				return repo.Create(context.Background(), &User{Email: "test1@fake.com"})
 			},
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
+				resBody := res.Body
+				defer func(body io.ReadCloser) {
+					if err := body.Close(); err != nil {
+						fmt.Println("error occurred on body close:", err.Error())
+					}
+				}(resBody)
 
+				var pageDto domain.Page[Dto]
+				err := json.NewDecoder(resBody).Decode(&pageDto)
+				assert.NoErr(err)
+				assert.True(pageDto.TotalElements > 0)
+				assert.Equal(pageDto.Elements[0].Email, "test1@fake.com")
+			},
+		},
+		{
+			name:  "given pageable should return 200",
+			route: "/user?size=10&offset=0&sort=email%20ASC",
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test2@fake.com"})
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+				resBody := res.Body
+				defer func(body io.ReadCloser) {
+					if err := body.Close(); err != nil {
+						fmt.Println("error occurred on body close:", err.Error())
+					}
+				}(resBody)
+
+				var pageDto domain.Page[Dto]
+				err := json.NewDecoder(resBody).Decode(&pageDto)
+				assert.NoErr(err)
+				assert.True(pageDto.TotalElements > 0)
+				assert.Equal(pageDto.Elements[1].Email, "test2@fake.com")
+			},
+		},
+		{
+			name:  "given pageable with offset 5 should return 200 and no elements",
+			route: "/user?offset=5&sort=email%20ASC",
+			given: func(t *testing.T) error {
+				return repo.Create(context.Background(), &User{Email: "test3@fake.com"})
+			},
+			wantCode: 200,
+			verify: func(t *testing.T, res *http.Response) {
+				resBody := res.Body
+				defer func(body io.ReadCloser) {
+					if err := body.Close(); err != nil {
+						fmt.Println("error occurred on body close:", err.Error())
+					}
+				}(resBody)
+
+				var pageDto domain.Page[Dto]
+				err := json.NewDecoder(resBody).Decode(&pageDto)
+				assert.NoErr(err)
+				assert.True(len(pageDto.Elements) == 0)
 			},
 		},
 	}

@@ -1,8 +1,9 @@
 package user
 
 import (
-	"github.com/fmiskovic/go-starter/internal/domain"
 	"time"
+
+	"github.com/fmiskovic/go-starter/internal/domain"
 )
 
 // Dto represents user create and update request data
@@ -88,5 +89,17 @@ func toDto(u *User) *Dto {
 		Location:    u.Location,
 		Gender:      u.Gender,
 		Enabled:     u.Enabled,
+	}
+}
+
+func toPageDto(page domain.Page[User]) domain.Page[Dto] {
+	var dtos []Dto
+	for _, u := range page.Elements {
+		dtos = append(dtos, *toDto(&u))
+	}
+	return domain.Page[Dto]{
+		TotalPages:    page.TotalPages,
+		TotalElements: page.TotalElements,
+		Elements:      dtos,
 	}
 }
