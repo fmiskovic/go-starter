@@ -17,6 +17,12 @@ As a developer, I often found myself spending valuable time on repetitive tasks 
 ## What problem does it solve?
 This project addresses the pain points associated with the initial setup of fullstack applications. It provides a ready-to-use template with SSR support, allowing developers to kickstart their projects without the hassle of configuring the frontend and backend separately.
 
+## Tech Stack
+- Backend:
+    - [Go](https://go.dev/), [Fiber](https://gofiber.io/), [Bun](https://bun.uptrace.dev/), [Postgres](https://www.postgresql.org/) 
+- Frontend:
+    - [HTML](https://developer.mozilla.org/en-US/docs/Web/HTML), [Tailwind CSS](https://flowbite.com/), [AlpineJS](https://alpinejs.dev/)
+
 ## How to use this template
 > **DO NOT FORK** this is meant to be used from **[Use this template](https://github.com/fmiskovic/go-starter/generate)** feature.
 
