@@ -1,9 +1,9 @@
-// Package database contains database implementations.
-package database
+// Package database is a port to connect to a db.
+package ports
 
 import (
 	"database/sql"
-	"github.com/fmiskovic/go-starter/internal/util"
+	"github.com/fmiskovic/go-starter/internal/helper"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -20,7 +20,7 @@ func Connect(uri string, maxOpenConn int, maxIdleConn int) *bun.DB {
 	sqlDb.SetMaxOpenConns(maxOpenConn)
 	sqlDb.SetMaxIdleConns(maxIdleConn)
 	bunDb := bun.NewDB(sqlDb, pgdialect.New())
-	if util.IsDev() {
+	if helper.IsDev() {
 		bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
 	}
 

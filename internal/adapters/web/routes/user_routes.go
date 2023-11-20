@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"github.com/fmiskovic/go-starter/internal/infrastructure/persistence"
-	"github.com/fmiskovic/go-starter/internal/interfaces/handlers"
+	"github.com/fmiskovic/go-starter/internal/adapters/repos"
+	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
 	"github.com/gofiber/fiber/v2"
 )
 
 // InitUserRoutes initializes user management endpoints.
-func InitUserRoutes(repo persistence.UserRepo, validator handlers.Validator, app *fiber.App) {
+func InitUserRoutes(repo repos.UserRepo, validator handlers.Validator, app *fiber.App) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 

@@ -1,12 +1,13 @@
+// Package server represents secondary adapter.
 package server
 
 import (
 	"errors"
-	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
-	"github.com/fmiskovic/go-starter/internal/infrastructure/persistence"
-	"github.com/fmiskovic/go-starter/internal/interfaces/handlers"
-	"github.com/fmiskovic/go-starter/internal/interfaces/routes"
-	"github.com/fmiskovic/go-starter/internal/server/config"
+	"github.com/fmiskovic/go-starter/internal/adapters/repos"
+	"github.com/fmiskovic/go-starter/internal/adapters/server/config"
+	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
+	"github.com/fmiskovic/go-starter/internal/adapters/web/routes"
+	"github.com/fmiskovic/go-starter/internal/ports"
 	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
@@ -32,7 +33,7 @@ func New(config config.ServerConfig) *Server {
 
 // InitDb connects Server to the DB.
 func (s *Server) InitDb() error {
-	s.Db = database.Connect(s.Config.DbConnString, s.Config.MaxOpenConn, s.Config.MaxIdleConn)
+	s.Db = ports.Connect(s.Config.DbConnString, s.Config.MaxOpenConn, s.Config.MaxIdleConn)
 	return nil
 }
 
@@ -52,7 +53,7 @@ func (s *Server) InitApp() error {
 	routes.InitSwaggerRoutes(app)
 
 	// init user api handlers
-	routes.InitUserRoutes(persistence.NewUserRepo(s.Db), handlers.NewValidator(), app)
+	routes.InitUserRoutes(repos.NewUserRepo(s.Db), handlers.NewValidator(), app)
 	// init static handlers
 	routes.InitStaticRoutes(app)
 

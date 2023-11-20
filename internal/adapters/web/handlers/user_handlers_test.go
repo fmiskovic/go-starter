@@ -5,25 +5,25 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/fmiskovic/go-starter/internal/adapters/repos"
+	"github.com/fmiskovic/go-starter/internal/adapters/testx"
+	"github.com/fmiskovic/go-starter/internal/adapters/web/api"
+	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
-	"github.com/fmiskovic/go-starter/internal/infrastructure/persistence"
-	"github.com/fmiskovic/go-starter/internal/interfaces/api"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fmiskovic/go-starter/internal/domain"
-	"github.com/fmiskovic/go-starter/internal/testhelpers"
 	"github.com/matryer/is"
 )
 
 func TestHandleCreate(t *testing.T) {
 	assert := is.New(t)
 
-	bunDb, app := testhelpers.SetUpServer(t)
+	bunDb, app := testx.SetUpServer(t)
 
-	repo := persistence.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(bunDb)
 	valid := NewValidator()
 	app.Post("/user", HandleCreate(repo, valid))
 
@@ -87,9 +87,9 @@ func TestHandleCreate(t *testing.T) {
 func TestHandleUpdate(t *testing.T) {
 	assert := is.New(t)
 
-	bunDb, app := testhelpers.SetUpServer(t)
+	bunDb, app := testx.SetUpServer(t)
 
-	repo := persistence.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(bunDb)
 	valid := NewValidator()
 	app.Put("/user", HandleUpdate(repo, valid))
 
@@ -169,9 +169,9 @@ func TestHandleUpdate(t *testing.T) {
 func TestHandleDeleteById(t *testing.T) {
 	assert := is.New(t)
 
-	bunDb, app := testhelpers.SetUpServer(t)
+	bunDb, app := testx.SetUpServer(t)
 
-	repo := persistence.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(bunDb)
 	app.Delete("/user/:id", HandleDeleteById(repo))
 
 	tests := []struct {
@@ -246,9 +246,9 @@ func TestHandleDeleteById(t *testing.T) {
 func TestHandleGetById(t *testing.T) {
 	assert := is.New(t)
 
-	bunDb, app := testhelpers.SetUpServer(t)
+	bunDb, app := testx.SetUpServer(t)
 
-	repo := persistence.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(bunDb)
 	app.Get("/user/:id", HandleGetById(repo))
 
 	tests := []struct {
@@ -332,9 +332,9 @@ func TestHandleGetById(t *testing.T) {
 func TestHandleGetPage(t *testing.T) {
 	assert := is.New(t)
 
-	bunDb, app := testhelpers.SetUpServer(t)
+	bunDb, app := testx.SetUpServer(t)
 
-	repo := persistence.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(bunDb)
 	app.Get("/user", HandleGetPage(repo))
 
 	tests := []struct {

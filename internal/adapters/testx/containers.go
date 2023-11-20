@@ -1,10 +1,10 @@
-package testhelpers
+package testx
 
 import (
 	"context"
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
-	"github.com/fmiskovic/go-starter/internal/util"
+	"github.com/fmiskovic/go-starter/internal/helper"
+	"github.com/fmiskovic/go-starter/internal/ports"
 	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -42,9 +42,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				panic(err)
 			}
 
-			dbName := util.GetEnvOrDefault("DB_NAME", "testhelpers-db")
-			dbUser := util.GetEnvOrDefault("DB_USER", "testhelpers")
-			dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "testhelpers")
+			dbName := helper.GetEnvOrDefault("DB_NAME", "testx-db")
+			dbUser := helper.GetEnvOrDefault("DB_USER", "testx")
+			dbPassword := helper.GetEnvOrDefault("DB_PASSWORD", "testx")
 
 			dbUri := fmt.Sprintf(
 				"postgresql://%s:%s@%s/%s?sslmode=disable",
@@ -55,7 +55,7 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 			)
 
 			openDbConn := runtime.NumCPU() + 1
-			bunDb = database.Connect(dbUri, openDbConn, openDbConn)
+			bunDb = ports.Connect(dbUri, openDbConn, openDbConn)
 
 			if err := migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)
@@ -74,9 +74,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 }
 
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {
-	dbName := util.GetEnvOrDefault("DB_NAME", "testhelpers-db")
-	dbUser := util.GetEnvOrDefault("DB_USER", "testhelpers")
-	dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "testhelpers")
+	dbName := helper.GetEnvOrDefault("DB_NAME", "testx-db")
+	dbUser := helper.GetEnvOrDefault("DB_USER", "testx")
+	dbPassword := helper.GetEnvOrDefault("DB_PASSWORD", "testx")
 
 	// Define a Postgres container configuration.
 	req := testcontainers.ContainerRequest{

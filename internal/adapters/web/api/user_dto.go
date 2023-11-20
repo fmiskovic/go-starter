@@ -2,10 +2,9 @@
 package api
 
 import (
+	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
 	"time"
-
-	"github.com/fmiskovic/go-starter/internal/domain"
 )
 
 // UserDto represents user DTO.

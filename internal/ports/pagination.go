@@ -1,8 +1,8 @@
-// Package pagination provides structures and logic for pagination requests.
-package pagination
+package ports
 
 import "fmt"
 
+// Direction can be ASC, DESC, ASC_NULLS_FIRST, DESC_NULLS_FIRST, ASC_NULLS_LAST or DESC_NULLS_LAST.
 type Direction string
 
 const (

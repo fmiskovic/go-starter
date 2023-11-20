@@ -1,11 +1,11 @@
-package persistence
+// Package repos represents secondary adapter.
+package repos
 
 import (
 	"context"
 	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
-	"github.com/fmiskovic/go-starter/internal/interfaces/api"
-	"github.com/fmiskovic/go-starter/internal/interfaces/pagination"
+	"github.com/fmiskovic/go-starter/internal/ports"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -36,7 +36,7 @@ func (repo *UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error
 // Create persists new user entity.
 func (repo *UserRepo) Create(ctx context.Context, u *user.User) error {
 	if u == nil {
-		return api.NilUserError
+		return ports.NilEntityError
 	}
 	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
 		return err
@@ -48,7 +48,7 @@ func (repo *UserRepo) Create(ctx context.Context, u *user.User) error {
 // Update existing persisted user entity.
 func (repo *UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
-		return api.NilUserError
+		return ports.NilEntityError
 	}
 	u.UpdatedAt = time.Now()
 	if _, err := repo.db.NewUpdate().Model(u).OmitZero().Where("id = ?", u.ID).Exec(ctx); err != nil {
@@ -68,14 +68,14 @@ func (repo *UserRepo) DeleteById(ctx context.Context, id uint64) error {
 }
 
 // GetPage respond with a page of users.
-func (repo *UserRepo) GetPage(ctx context.Context, p pagination.Pageable) (domain.Page[user.User], error) {
+func (repo *UserRepo) GetPage(ctx context.Context, p ports.Pageable) (domain.Page[user.User], error) {
 	var users []user.User
 	count, err := repo.db.
 		NewSelect().
 		Model(&users).
 		Limit(p.Size).
 		Offset(p.Offset).
-		Order(pagination.StringifyOrders(p.Sort)...).
+		Order(ports.StringifyOrders(p.Sort)...).
 		ScanAndCount(ctx)
 
 	totalPages := 0

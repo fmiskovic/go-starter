@@ -1,4 +1,4 @@
-package testhelpers
+package testx
 
 import (
 	"github.com/gofiber/fiber/v2"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/fmiskovic/go-starter/internal/server"
-	"github.com/fmiskovic/go-starter/internal/server/config"
+	"github.com/fmiskovic/go-starter/internal/adapters/server"
+	"github.com/fmiskovic/go-starter/internal/adapters/server/config"
 	"github.com/urfave/cli/v2"
 )
 

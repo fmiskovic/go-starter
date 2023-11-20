@@ -1,6 +1,19 @@
-package errorsx
+package ports
 
 import "errors"
+
+var (
+	NilEntityError       = errors.New("entity can not be nil")
+	ErrParseReqBody      = errors.New("failed to parse request body")
+	ErrEntityCreate      = errors.New("failed to create entity")
+	ErrEntityUpdate      = errors.New("failed to update entity")
+	ErrGetById           = errors.New("failed to get entity by id")
+	ErrInvalidId         = errors.New("invalid id")
+	ErrDeleteById        = errors.New("failed to delete entity by id")
+	ErrInvalidPageSize   = errors.New("invalid page size number")
+	ErrInvalidPageOffset = errors.New("invalid page offset number")
+	ErrGetPage           = errors.New("failed to get entities page")
+)
 
 // ErrorX represents a custom error struct that contains optionally service and application error.
 type ErrorX struct {

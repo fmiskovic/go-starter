@@ -1,12 +1,11 @@
-package persistence
+package repos
 
 import (
 	"errors"
+	"github.com/fmiskovic/go-starter/internal/adapters/testx"
 	"github.com/fmiskovic/go-starter/internal/domain"
 	"github.com/fmiskovic/go-starter/internal/domain/user"
-	"github.com/fmiskovic/go-starter/internal/interfaces/api"
-	"github.com/fmiskovic/go-starter/internal/interfaces/pagination"
-	"github.com/fmiskovic/go-starter/internal/testhelpers"
+	"github.com/fmiskovic/go-starter/internal/ports"
 	"github.com/matryer/is"
 	"strings"
 	"testing"
@@ -21,7 +20,7 @@ func TestUserRepo_GetById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewUserRepo(bunDb)
@@ -78,7 +77,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewUserRepo(bunDb)
@@ -141,7 +140,7 @@ func TestUserRepo_Create(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewUserRepo(bunDb)
@@ -163,7 +162,7 @@ func TestUserRepo_Create(t *testing.T) {
 		{
 			name:    "given nil user should return error",
 			args:    args{u: nil},
-			wantErr: api.NilUserError,
+			wantErr: ports.NilEntityError,
 		},
 		{
 			name:    "given user with id should return error",
@@ -199,7 +198,7 @@ func TestUserRepo_Update(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewUserRepo(bunDb)
@@ -217,14 +216,14 @@ func TestUserRepo_Update(t *testing.T) {
 	}{
 		{
 			name: "given valid user input should not return error",
-			args: args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "testhelpers@testhelpers.com"}},
+			args: args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "testx@testx.com"}},
 			given: func() error {
 				return repo.Create(ctx, &user.User{Email: "test1@fake.com"})
 			},
 			verify: func(t *testing.T) {
 				u, err := repo.GetById(ctx, 1)
 				assert.NoErr(err)
-				assert.Equal("testhelpers@testhelpers.com", u.Email)
+				assert.Equal("testx@testx.com", u.Email)
 			},
 			wantErr: nil,
 		},
@@ -235,7 +234,7 @@ func TestUserRepo_Update(t *testing.T) {
 				return nil
 			},
 			verify:  func(t *testing.T) {},
-			wantErr: api.NilUserError,
+			wantErr: ports.NilEntityError,
 		},
 		{
 			name: "given user with non existing id should return error",
@@ -277,14 +276,14 @@ func TestUserRepo_GetPage(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
 	defer tearDown(t)
 
 	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
-		pageable pagination.Pageable
+		pageable ports.Pageable
 	}
 	tests := []struct {
 		name    string
@@ -296,10 +295,10 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request should return page of users",
 			args: args{
-				pageable: pagination.Pageable{
+				pageable: ports.Pageable{
 					Offset: 0,
 					Size:   5,
-					Sort:   pagination.NewSort(pagination.NewOrder(pagination.WithProperty("email"))),
+					Sort:   ports.NewSort(ports.NewOrder(ports.WithProperty("email"))),
 				},
 			},
 			given: func(t *testing.T) error {
@@ -311,7 +310,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request without sort should return page of users",
 			args: args{
-				pageable: pagination.Pageable{
+				pageable: ports.Pageable{
 					Offset: 0,
 					Size:   5,
 				},
