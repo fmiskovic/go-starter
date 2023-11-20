@@ -3,9 +3,9 @@ package repos
 import (
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/adapters/testx"
-	"github.com/fmiskovic/go-starter/internal/domain"
-	"github.com/fmiskovic/go-starter/internal/domain/user"
-	"github.com/fmiskovic/go-starter/internal/ports"
+	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/user"
+	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/matryer/is"
 	"strings"
 	"testing"

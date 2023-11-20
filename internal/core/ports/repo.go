@@ -3,7 +3,7 @@ package ports
 
 import (
 	"context"
-	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain"
 )
 
 // Repo is generic repository.

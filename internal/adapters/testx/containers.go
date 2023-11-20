@@ -3,8 +3,8 @@ package testx
 import (
 	"context"
 	"fmt"
+	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/fmiskovic/go-starter/internal/helper"
-	"github.com/fmiskovic/go-starter/internal/ports"
 	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -54,8 +54,12 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				dbName,
 			)
 
-			openDbConn := runtime.NumCPU() + 1
-			bunDb = ports.Connect(dbUri, openDbConn, openDbConn)
+			conn := runtime.NumCPU() + 1
+			bunDb = ports.Database{
+				Uri:         dbUri,
+				MaxOpenConn: conn,
+				MaxIdleConn: conn,
+			}.Connect()
 
 			if err := migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)

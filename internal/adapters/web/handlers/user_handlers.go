@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
-	"github.com/fmiskovic/go-starter/internal/adapters/web/api"
-	"github.com/fmiskovic/go-starter/internal/ports"
+	"github.com/fmiskovic/go-starter/internal/adapters/web/dto"
+	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +25,7 @@ func HandleCreate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 		}
 
 		// convert request to u entity
-		u := api.ToUser(req)
+		u := dto.ToUser(req)
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 
@@ -34,7 +34,7 @@ func HandleCreate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityCreate)).Error())
 		}
 
-		res := api.ToUserDto(u)
+		res := dto.ToUserDto(u)
 		c.Status(fiber.StatusCreated)
 		return toJson(c, res)
 	}
@@ -54,7 +54,7 @@ func HandleUpdate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 		}
 
 		// convert request to user entity
-		u := api.ToUser(req)
+		u := dto.ToUser(req)
 		u.UpdatedAt = time.Now()
 
 		if err := repo.Update(c.Context(), u); err != nil {
@@ -62,7 +62,7 @@ func HandleUpdate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityUpdate)).Error())
 		}
 
-		return toJson(c, api.ToUserDto(u))
+		return toJson(c, dto.ToUserDto(u))
 	}
 }
 
@@ -88,7 +88,7 @@ func HandleGetById(repo repos.UserRepo) func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetById)).Error())
 		}
 
-		return toJson(c, api.ToUserDto(u))
+		return toJson(c, dto.ToUserDto(u))
 	}
 }
 
@@ -147,12 +147,12 @@ func HandleGetPage(repo repos.UserRepo) func(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetPage)).Error())
 		}
-		return toJson(c, api.ToPageDto(page))
+		return toJson(c, dto.ToPageDto(page))
 	}
 }
 
-func parseRequestBody(c *fiber.Ctx) (*api.UserDto, error) {
-	var r = new(api.UserDto)
+func parseRequestBody(c *fiber.Ctx) (*dto.UserDto, error) {
+	var r = new(dto.UserDto)
 	if err := c.BodyParser(r); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest,
 			ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrParseReqBody)).Error())

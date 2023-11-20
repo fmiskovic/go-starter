@@ -1,4 +1,3 @@
-// Package server represents secondary adapter.
 package server
 
 import (
@@ -7,7 +6,7 @@ import (
 	"github.com/fmiskovic/go-starter/internal/adapters/server/config"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/routes"
-	"github.com/fmiskovic/go-starter/internal/ports"
+	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
@@ -33,7 +32,11 @@ func New(config config.ServerConfig) *Server {
 
 // InitDb connects Server to the DB.
 func (s *Server) InitDb() error {
-	s.Db = ports.Connect(s.Config.DbConnString, s.Config.MaxOpenConn, s.Config.MaxIdleConn)
+	ports.Database{
+		Uri:         config.DefaultConfig.DbConnString,
+		MaxOpenConn: config.DefaultConfig.MaxOpenConn,
+		MaxIdleConn: config.DefaultConfig.MaxOpenConn,
+	}.Connect()
 	return nil
 }
 

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/fmiskovic/go-starter/internal/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"time"
 
 	"github.com/uptrace/bun"

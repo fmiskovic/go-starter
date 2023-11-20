@@ -1,9 +1,9 @@
-// Package api defines API contracts using DTOs, request, and response structs.
-package api
+// Package dto defines API contracts using DTOs, request, and response structs.
+package dto
 
 import (
-	"github.com/fmiskovic/go-starter/internal/domain"
-	"github.com/fmiskovic/go-starter/internal/domain/user"
+	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"time"
 )
 
