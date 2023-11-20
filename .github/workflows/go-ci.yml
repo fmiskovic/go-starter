@@ -29,7 +29,7 @@ jobs:
       run: make build
 
     - name: Test
-      run: make testhelpers
+      run: make test
 
     - name: Race
       run: make race
