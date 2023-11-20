@@ -1,12 +1,12 @@
-package user
+package api
 
 import "errors"
 
 var (
+	NilUserError         = errors.New("user entity can not be nil")
 	ErrUserReqBody       = errors.New("failed to parse user request body")
 	ErrUserCreate        = errors.New("failed to create user")
 	ErrUserUpdate        = errors.New("failed to update user")
-	ErrUserUpdateReqBody = errors.New("failed to parse update user request body")
 	ErrUserGetById       = errors.New("failed to get user by id")
 	ErrInvalidUserId     = errors.New("invalid user id")
 	ErrUserDeleteById    = errors.New("failed to delete user by id")

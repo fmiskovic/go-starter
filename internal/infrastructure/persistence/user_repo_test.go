@@ -1,9 +1,12 @@
-package user
+package persistence
 
 import (
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/domain"
-	"github.com/fmiskovic/go-starter/internal/test"
+	"github.com/fmiskovic/go-starter/internal/domain/user"
+	"github.com/fmiskovic/go-starter/internal/interfaces/api"
+	"github.com/fmiskovic/go-starter/internal/interfaces/pagination"
+	"github.com/fmiskovic/go-starter/internal/testhelpers"
 	"github.com/matryer/is"
 	"strings"
 	"testing"
@@ -17,11 +20,11 @@ func TestUserRepo_GetById(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-test
-	tearDown, ctx, bunDb := test.SetUpDb(t)
+	// setup db
+	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
 	defer tearDown(t)
 
-	repo := NewRepo(bunDb)
+	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
@@ -37,7 +40,7 @@ func TestUserRepo_GetById(t *testing.T) {
 			name: "given valid id should return user",
 			args: args{id: 1},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test1@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test1@gmail.com"})
 			},
 			wantErr: nil,
 		},
@@ -45,7 +48,7 @@ func TestUserRepo_GetById(t *testing.T) {
 			name: "given invalid id should return error",
 			args: args{id: 111},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test2@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test2@gmail.com"})
 			},
 			wantErr: errors.New("sql: no rows in result set"),
 		},
@@ -74,11 +77,11 @@ func TestUserRepo_DeleteById(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-test
-	tearDown, ctx, bunDb := test.SetUpDb(t)
+	// setup db
+	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
 	defer tearDown(t)
 
-	repo := NewRepo(bunDb)
+	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
@@ -95,7 +98,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			name: "given valid id should delete user",
 			args: args{id: 1},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test1@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test1@gmail.com"})
 			},
 			verify: func(t *testing.T) {
 				u, err := repo.GetById(ctx, 1)
@@ -108,7 +111,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			name: "given invalid id should not return error",
 			args: args{id: 111},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test2@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test2@gmail.com"})
 			},
 			verify: func(t *testing.T) {
 				_, err := repo.GetById(ctx, 111)
@@ -137,15 +140,15 @@ func TestUserRepo_Create(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-test
-	tearDown, ctx, bunDb := test.SetUpDb(t)
+	// setup db
+	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
 	defer tearDown(t)
 
-	repo := NewRepo(bunDb)
+	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
-		u *User
+		u *user.User
 	}
 	tests := []struct {
 		name    string
@@ -154,22 +157,22 @@ func TestUserRepo_Create(t *testing.T) {
 	}{
 		{
 			name:    "given valid user should not return error",
-			args:    args{u: &User{Email: "test1@fake.com"}},
+			args:    args{u: &user.User{Email: "test1@fake.com"}},
 			wantErr: nil,
 		},
 		{
 			name:    "given nil user should return error",
 			args:    args{u: nil},
-			wantErr: domain.NilEntityError,
+			wantErr: api.NilUserError,
 		},
 		{
 			name:    "given user with id should return error",
-			args:    args{u: &User{Entity: domain.Entity{ID: 1}, Email: "test1@fake.com"}},
+			args:    args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "test1@fake.com"}},
 			wantErr: errors.New("duplicate key value violates unique constraint"),
 		},
 		{
 			name:    "given user with non-unique email should return error",
-			args:    args{u: &User{Email: "test1@fake.com"}},
+			args:    args{u: &user.User{Email: "test1@fake.com"}},
 			wantErr: errors.New("duplicate key value violates unique constraint \"users_email_key\""),
 		},
 	}
@@ -195,15 +198,15 @@ func TestUserRepo_Update(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-test
-	tearDown, ctx, bunDb := test.SetUpDb(t)
+	// setup db
+	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
 	defer tearDown(t)
 
-	repo := NewRepo(bunDb)
+	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
-		u *User
+		u *user.User
 	}
 	tests := []struct {
 		name    string
@@ -214,14 +217,14 @@ func TestUserRepo_Update(t *testing.T) {
 	}{
 		{
 			name: "given valid user input should not return error",
-			args: args{u: &User{Entity: domain.Entity{ID: 1}, Email: "test@test.com"}},
+			args: args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "testhelpers@testhelpers.com"}},
 			given: func() error {
-				return repo.Create(ctx, &User{Email: "test1@fake.com"})
+				return repo.Create(ctx, &user.User{Email: "test1@fake.com"})
 			},
 			verify: func(t *testing.T) {
 				u, err := repo.GetById(ctx, 1)
 				assert.NoErr(err)
-				assert.Equal("test@test.com", u.Email)
+				assert.Equal("testhelpers@testhelpers.com", u.Email)
 			},
 			wantErr: nil,
 		},
@@ -232,11 +235,11 @@ func TestUserRepo_Update(t *testing.T) {
 				return nil
 			},
 			verify:  func(t *testing.T) {},
-			wantErr: domain.NilEntityError,
+			wantErr: api.NilUserError,
 		},
 		{
 			name: "given user with non existing id should return error",
-			args: args{u: &User{Entity: domain.Entity{ID: 111}}},
+			args: args{u: &user.User{Entity: domain.Entity{ID: 111}}},
 			given: func() error {
 				return nil
 			},
@@ -273,15 +276,15 @@ func TestUserRepo_GetPage(t *testing.T) {
 
 	assert := is.New(t)
 
-	// setup test-test
-	tearDown, ctx, bunDb := test.SetUpDb(t)
+	// setup db
+	tearDown, ctx, bunDb := testhelpers.SetUpDb(t)
 	defer tearDown(t)
 
-	repo := NewRepo(bunDb)
+	repo := NewUserRepo(bunDb)
 
 	// setup test cases
 	type args struct {
-		pageable domain.Pageable
+		pageable pagination.Pageable
 	}
 	tests := []struct {
 		name    string
@@ -293,14 +296,14 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request should return page of users",
 			args: args{
-				pageable: domain.Pageable{
+				pageable: pagination.Pageable{
 					Offset: 0,
 					Size:   5,
-					Sort:   domain.NewSort(domain.NewOrder(domain.WithProperty("email"))),
+					Sort:   pagination.NewSort(pagination.NewOrder(pagination.WithProperty("email"))),
 				},
 			},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test11@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test11@gmail.com"})
 			},
 			want:    "test11@gmail.com",
 			wantErr: nil,
@@ -308,13 +311,13 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request without sort should return page of users",
 			args: args{
-				pageable: domain.Pageable{
+				pageable: pagination.Pageable{
 					Offset: 0,
 					Size:   5,
 				},
 			},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &User{Email: "test12@gmail.com"})
+				return repo.Create(ctx, &user.User{Email: "test12@gmail.com"})
 			},
 			want:    "test11@gmail.com",
 			wantErr: nil,

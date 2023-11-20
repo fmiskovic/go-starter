@@ -10,6 +10,7 @@ import (
 	"github.com/uptrace/bun/migrate"
 )
 
+// Migrations object.
 var Migrations = migrate.NewMigrations()
 
 //go:embed *.sql

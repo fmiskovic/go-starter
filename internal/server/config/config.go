@@ -2,15 +2,16 @@ package config
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/pkg/util"
+	"github.com/fmiskovic/go-starter/internal/util"
 	"log/slog"
 	"runtime"
 	"strconv"
 )
 
-var DefaultConfig AppConfig
+var DefaultConfig ServerConfig
 
-type AppConfig struct {
+// ServerConfig holds server configuration.
+type ServerConfig struct {
 	ListenAddr   string
 	DbConnString string
 	MaxOpenConn  int
@@ -55,37 +56,37 @@ func init() {
 	)
 }
 
-// New constructs AppConfig with the given options
-func New(opts ...ServerConfigOption) AppConfig {
-	conf := &AppConfig{}
+// New instantiate new ServerConfig with the given options.
+func New(opts ...ServerConfigOption) ServerConfig {
+	conf := &ServerConfig{}
 	for _, opt := range opts {
 		opt(conf)
 	}
 	return *conf
 }
 
-type ServerConfigOption func(*AppConfig)
+type ServerConfigOption func(*ServerConfig)
 
 func WithListenAddr(addr string) ServerConfigOption {
-	return func(c *AppConfig) {
+	return func(c *ServerConfig) {
 		c.ListenAddr = addr
 	}
 }
 
 func WithDbConnString(conn string) ServerConfigOption {
-	return func(c *AppConfig) {
+	return func(c *ServerConfig) {
 		c.DbConnString = conn
 	}
 }
 
 func WithMaxOpenConn(maxOpen int) ServerConfigOption {
-	return func(c *AppConfig) {
+	return func(c *ServerConfig) {
 		c.MaxOpenConn = maxOpen
 	}
 }
 
 func WithIdleOpenConn(maxIdle int) ServerConfigOption {
-	return func(c *AppConfig) {
+	return func(c *ServerConfig) {
 		c.MaxIdleConn = maxIdle
 	}
 }

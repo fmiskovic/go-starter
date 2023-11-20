@@ -1,8 +1,9 @@
+// Package database contains database implementations.
 package database
 
 import (
 	"database/sql"
-	"github.com/fmiskovic/go-starter/pkg/util"
+	"github.com/fmiskovic/go-starter/internal/util"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -10,6 +11,7 @@ import (
 	"log/slog"
 )
 
+// Connect opens new DB connection with specified uri, maxOpenConn, maxIdleConn, and returns pointer to a bun.DB.
 func Connect(uri string, maxOpenConn int, maxIdleConn int) *bun.DB {
 	slog.Info("initializing db with conn string", "conn", uri)
 

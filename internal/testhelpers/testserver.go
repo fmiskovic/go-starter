@@ -1,4 +1,4 @@
-package test
+package testhelpers
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// SetUpServer helps to set up test Server.
 func SetUpServer(t *testing.T) (*bun.DB, *fiber.App) {
 	t.Helper()
 

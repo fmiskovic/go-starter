@@ -8,7 +8,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// User represents database entity
+// User represents database entity.
 type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
@@ -21,17 +21,11 @@ type User struct {
 	Enabled     bool      `bun:"enabled"`
 }
 
-func (u *User) EnableIt() {
-	u.Enabled = true
-}
-
-func (u *User) DisableIt() {
-	u.Enabled = false
-}
-
+// Gender is either MALE, FEMALE or OTHER.
 type Gender uint8
 
-func (g Gender) stringify() string {
+// Stringify converts Gender into string.
+func (g Gender) Stringify() string {
 	switch g {
 	case 0:
 		return "Male"

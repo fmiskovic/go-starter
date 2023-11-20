@@ -1,17 +1,7 @@
-package domain
+// Package pagination provides structures and logic for pagination requests.
+package pagination
 
-import (
-	"context"
-	"fmt"
-)
-
-type Repo[ID any, T any] interface {
-	GetById(ctx context.Context, id ID) (*T, error)
-	Create(ctx context.Context, entity *T) error
-	Update(ctx context.Context, entity *T) error
-	DeleteById(ctx context.Context, id ID) error
-	GetPage(ctx context.Context, p Pageable) (Page[T], error)
-}
+import "fmt"
 
 type Direction string
 
@@ -24,16 +14,18 @@ const (
 	DESC_NULLS_LAST  Direction = "DESC NULLS LAST"
 )
 
+// Order represent single sort instruction.
 type Order struct {
-	Property   string
-	Direction  Direction
-	IgnoreCase bool
+	Property  string
+	Direction Direction
 }
 
+// OrderOption function is used for creating new Order object.
 type OrderOption func(*Order)
 
+// NewOrder creates new Order object.
 func NewOrder(opts ...OrderOption) *Order {
-	order := &Order{IgnoreCase: false, Property: "id", Direction: ASC}
+	order := &Order{Property: "id", Direction: ASC}
 	for _, opt := range opts {
 		opt(order)
 	}
@@ -52,34 +44,25 @@ func WithProperty(p string) OrderOption {
 	}
 }
 
-func WithIgnoreCase(ignore bool) OrderOption {
-	return func(order *Order) {
-		order.IgnoreCase = ignore
-	}
-}
-
+// Sort represents sorting options for pagination.
 type Sort struct {
 	Orders []*Order
 }
 
+// NewSort creates new sort object from Orders.
 func NewSort(order ...*Order) Sort {
 	return Sort{Orders: order}
 }
 
-type Page[T any] struct {
-	TotalPages    int
-	TotalElements int
-	Elements      []T
-}
-
+// Pageable represents the pagination request parameters.
 type Pageable struct {
 	Size   int
 	Offset int
 	Sort   Sort
 }
 
-// Orders travers sort orders into a slice of strings in the following format, e.g. "prop1 ASC, prop2 DESC"
-func Orders(s Sort) []string {
+// StringifyOrders travers sort orders into a slice of strings in the following of "prop1 ASC, prop2 DESC".
+func StringifyOrders(s Sort) []string {
 	var orders []string
 	for _, o := range s.Orders {
 		orders = append(orders, fmt.Sprintf("%s %s", o.Property, o.Direction))

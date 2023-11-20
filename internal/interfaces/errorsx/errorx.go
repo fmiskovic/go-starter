@@ -1,12 +1,14 @@
-package errorx
+package errorsx
 
 import "errors"
 
+// ErrorX represents a custom error struct that contains optionally service and application error.
 type ErrorX struct {
 	srvErr error
 	appErr error
 }
 
+// Error is implementation of error interface.
 func (x ErrorX) Error() string {
 	if x.srvErr == nil && x.appErr == nil {
 		return ""
@@ -14,6 +16,7 @@ func (x ErrorX) Error() string {
 	return errors.Join(x.srvErr, x.appErr).Error()
 }
 
+// New instantiate new ErrorX.
 func New(opts ...Option) *ErrorX {
 	x := &ErrorX{}
 	for _, opt := range opts {
@@ -22,6 +25,7 @@ func New(opts ...Option) *ErrorX {
 	return x
 }
 
+// Option func used to construct ErrorX.
 type Option func(x *ErrorX)
 
 func WithSvcErr(svcErr error) Option {

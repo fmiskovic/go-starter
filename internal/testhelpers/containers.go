@@ -1,11 +1,11 @@
-package test
+package testhelpers
 
 import (
 	"context"
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/database"
+	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
+	"github.com/fmiskovic/go-starter/internal/util"
 	"github.com/fmiskovic/go-starter/migrations"
-	"github.com/fmiskovic/go-starter/pkg/util"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
@@ -16,6 +16,7 @@ import (
 	"time"
 )
 
+// SetUpDb helps to set up test DB.
 func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 	t.Helper()
 
@@ -41,9 +42,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				panic(err)
 			}
 
-			dbName := util.GetEnvOrDefault("DB_NAME", "test-db")
-			dbUser := util.GetEnvOrDefault("DB_USER", "test")
-			dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "test")
+			dbName := util.GetEnvOrDefault("DB_NAME", "testhelpers-db")
+			dbUser := util.GetEnvOrDefault("DB_USER", "testhelpers")
+			dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "testhelpers")
 
 			dbUri := fmt.Sprintf(
 				"postgresql://%s:%s@%s/%s?sslmode=disable",
@@ -73,9 +74,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 }
 
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {
-	dbName := util.GetEnvOrDefault("DB_NAME", "test-db")
-	dbUser := util.GetEnvOrDefault("DB_USER", "test")
-	dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "test")
+	dbName := util.GetEnvOrDefault("DB_NAME", "testhelpers-db")
+	dbUser := util.GetEnvOrDefault("DB_USER", "testhelpers")
+	dbPassword := util.GetEnvOrDefault("DB_PASSWORD", "testhelpers")
 
 	// Define a Postgres container configuration.
 	req := testcontainers.ContainerRequest{

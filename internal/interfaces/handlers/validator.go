@@ -1,4 +1,4 @@
-package validator
+package handlers
 
 import (
 	"fmt"
@@ -6,14 +6,17 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+// Validator responsibility is to validate incoming request objects.
 type Validator struct {
 	validate *validator.Validate
 }
 
-func New() Validator {
+// NewValidator instantiate new Validator.
+func NewValidator() Validator {
 	return Validator{validate: validator.New()}
 }
 
+// Validate incoming request object and returns array of errors or empty.
 func (v Validator) Validate(data interface{}) []string {
 	errors := make([]string, 0)
 

@@ -2,33 +2,41 @@ package server
 
 import (
 	"errors"
+	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
+	"github.com/fmiskovic/go-starter/internal/infrastructure/persistence"
+	"github.com/fmiskovic/go-starter/internal/interfaces/handlers"
+	"github.com/fmiskovic/go-starter/internal/interfaces/routes"
+	"github.com/fmiskovic/go-starter/internal/server/config"
+	"github.com/gofiber/template/django/v3"
+	"html/template"
+	"log"
 	"log/slog"
+	"os"
+	"path/filepath"
 
-	"github.com/fmiskovic/go-starter/internal/config"
-	"github.com/fmiskovic/go-starter/internal/database"
-	"github.com/fmiskovic/go-starter/internal/domain/user"
-	"github.com/fmiskovic/go-starter/internal/handlers"
-	"github.com/fmiskovic/go-starter/pkg/validator"
-	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/uptrace/bun"
 )
 
+// Server holds configuration, database connection and fiber app.
 type Server struct {
-	Config config.AppConfig
+	Config config.ServerConfig
 	Db     *bun.DB
 	App    *fiber.App
 }
 
-func New(config config.AppConfig) *Server {
+// New instantiate new Server with specified config.
+func New(config config.ServerConfig) *Server {
 	return &Server{Config: config}
 }
 
+// InitDb connects Server to the DB.
 func (s *Server) InitDb() error {
 	s.Db = database.Connect(s.Config.DbConnString, s.Config.MaxOpenConn, s.Config.MaxIdleConn)
 	return nil
 }
 
+// InitApp initialises fiber app.
 func (s *Server) InitApp() error {
 	if s.Db == nil {
 		return errors.New("DB must be initialized first")
@@ -41,25 +49,23 @@ func (s *Server) InitApp() error {
 	})
 
 	// init swagger
-	app.Use(swagger.New(swagger.Config{
-		BasePath: "/api/v1/",
-		FilePath: "./docs/v1/swagger.json",
-		Path:     "docs",
-	}))
+	routes.InitSwaggerRoutes(app)
 
 	// init user api handlers
-	user.InitRoutes(user.NewRepo(s.Db), validator.New(), app)
+	routes.InitUserRoutes(persistence.NewUserRepo(s.Db), handlers.NewValidator(), app)
 	// init static handlers
-	initStaticRoutes(app)
+	routes.InitStaticRoutes(app)
 
 	s.App = app
 	return nil
 }
 
+// Ready returns true if everything is properly configured.
 func (s *Server) Ready() bool {
 	return s.Db != nil && s.App != nil
 }
 
+// Start the server.
 func (s *Server) Start() error {
 	if !s.Ready() {
 		return errors.New("server is not ready")
@@ -67,4 +73,25 @@ func (s *Server) Start() error {
 
 	slog.Info("the app is up and running...", "address", s.Config.ListenAddr)
 	return s.App.Listen(s.Config.ListenAddr)
+}
+
+func initViews() *django.Engine {
+	engine := django.New("./views", ".html")
+	engine.Reload(true)
+	engine.AddFunc("css", func(name string) (res template.HTML) {
+		err := filepath.Walk("public/assets", func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.Name() == name {
+				res = template.HTML("<link rel=\"stylesheet\" href=\"/" + path + "\">")
+			}
+			return nil
+		})
+		if err != nil {
+			log.Fatalf("failed to create django engine, unable to walk puiblic/assets folder. Error: %v", err)
+		}
+		return
+	})
+	return engine
 }

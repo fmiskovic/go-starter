@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/fmiskovic/go-starter/internal/config"
 	"github.com/fmiskovic/go-starter/internal/server"
+	"github.com/fmiskovic/go-starter/internal/server/config"
 	"github.com/urfave/cli/v2"
 )
 
+// newServeCmd configures start server cli command.
 func newServeCmd() *cli.Command {
 	return &cli.Command{
 		Name:  "serve",

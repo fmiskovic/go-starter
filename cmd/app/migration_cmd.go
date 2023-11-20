@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/config"
-	"github.com/fmiskovic/go-starter/internal/database"
+	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
+	"github.com/fmiskovic/go-starter/internal/server/config"
 	"github.com/uptrace/bun"
 	"strings"
 
@@ -11,6 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// newMigrationCmd configures set of migration cli commands.
 func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 	return &cli.Command{
 		Name:  "db",
