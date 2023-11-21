@@ -1,9 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/infrastructure/database"
-	"github.com/fmiskovic/go-starter/internal/server/config"
+	"github.com/fmiskovic/go-starter/internal/adapters/db"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/uptrace/bun"
 	"strings"
 
@@ -21,7 +22,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "init",
 				Usage: "create migration tables",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					return migrator.Init(c.Context)
 				},
 			},
@@ -29,11 +34,20 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "migrate",
 				Usage: "migrate database",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					if err := migrator.Lock(c.Context); err != nil {
 						return err
 					}
-					defer migrator.Unlock(c.Context) //nolint:errcheck
+					defer func(migrator *migrate.Migrator, ctx context.Context) {
+						err := migrator.Unlock(ctx)
+						if err != nil {
+							log.Errorf("failed to unlock: %v", err)
+						}
+					}(migrator, c.Context)
 
 					group, err := migrator.Migrate(c.Context)
 					if err != nil {
@@ -51,11 +65,20 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "rollback",
 				Usage: "rollback the last migration group",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					if err := migrator.Lock(c.Context); err != nil {
 						return err
 					}
-					defer migrator.Unlock(c.Context) //nolint:errcheck
+					defer func(migrator *migrate.Migrator, ctx context.Context) {
+						err := migrator.Unlock(ctx)
+						if err != nil {
+							log.Errorf("failed to unlock: %v", err)
+						}
+					}(migrator, c.Context)
 
 					group, err := migrator.Rollback(c.Context)
 					if err != nil {
@@ -73,7 +96,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "lock",
 				Usage: "lock migrations",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					return migrator.Lock(c.Context)
 				},
 			},
@@ -81,7 +108,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "unlock",
 				Usage: "unlock migrations",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					return migrator.Unlock(c.Context)
 				},
 			},
@@ -90,7 +121,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Usage: "create Go migration",
 				Action: func(c *cli.Context) error {
 					name := strings.Join(c.Args().Slice(), "_")
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					mf, err := migrator.CreateGoMigration(c.Context, name)
 					if err != nil {
 						return err
@@ -104,7 +139,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Usage: "create up and down SQL migrations",
 				Action: func(c *cli.Context) error {
 					name := strings.Join(c.Args().Slice(), "_")
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					files, err := migrator.CreateSQLMigrations(c.Context, name)
 					if err != nil {
 						return err
@@ -121,7 +160,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "status",
 				Usage: "print migrations status",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					ms, err := migrator.MigrationsWithStatus(c.Context)
 					if err != nil {
 						return err
@@ -136,7 +179,11 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 				Name:  "mark_applied",
 				Usage: "mark migrations as applied without actually running them",
 				Action: func(c *cli.Context) error {
-					migrator := migrate.NewMigrator(connectDb(), migrations)
+					bunDb, err := connectDb()
+					if err != nil {
+						return err
+					}
+					migrator := migrate.NewMigrator(bunDb, migrations)
 					group, err := migrator.Migrate(c.Context, migrate.WithNopMigration())
 					if err != nil {
 						return err
@@ -153,10 +200,10 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 	}
 }
 
-func connectDb() *bun.DB {
-	return database.Connect(
-		config.DefaultConfig.DbConnString,
-		config.DefaultConfig.MaxOpenConn,
-		config.DefaultConfig.MaxOpenConn,
-	)
+func connectDb() (*bun.DB, error) {
+	return db.Database{
+		Uri:         defaultConfig.DbConnString,
+		MaxOpenConn: defaultConfig.MaxOpenConn,
+		MaxIdleConn: defaultConfig.MaxOpenConn,
+	}.OpenDb()
 }
