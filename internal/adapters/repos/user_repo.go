@@ -21,7 +21,7 @@ func NewUserRepo(db *bun.DB) UserRepo {
 }
 
 // GetById returns user by specified id.
-func (repo *UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error) {
+func (repo UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error) {
 	var u = &user.User{}
 
 	err := repo.db.NewSelect().Model(u).Where("? = ?", bun.Ident("id"), id).Scan(ctx)
@@ -33,7 +33,7 @@ func (repo *UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error
 }
 
 // Create persists new user entity.
-func (repo *UserRepo) Create(ctx context.Context, u *user.User) error {
+func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ports.NilEntityError
 	}
@@ -45,7 +45,7 @@ func (repo *UserRepo) Create(ctx context.Context, u *user.User) error {
 }
 
 // Update existing persisted user entity.
-func (repo *UserRepo) Update(ctx context.Context, u *user.User) error {
+func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ports.NilEntityError
 	}
@@ -58,7 +58,7 @@ func (repo *UserRepo) Update(ctx context.Context, u *user.User) error {
 }
 
 // DeleteById remove user entity by specified id.
-func (repo *UserRepo) DeleteById(ctx context.Context, id uint64) error {
+func (repo UserRepo) DeleteById(ctx context.Context, id uint64) error {
 	if _, err := repo.db.NewDelete().Model(new(user.User)).Where("id = ?", id).Exec(ctx); err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (repo *UserRepo) DeleteById(ctx context.Context, id uint64) error {
 }
 
 // GetPage respond with a page of users.
-func (repo *UserRepo) GetPage(ctx context.Context, p ports.Pageable) (domain.Page[user.User], error) {
+func (repo UserRepo) GetPage(ctx context.Context, p ports.Pageable) (domain.Page[user.User], error) {
 	var users []user.User
 	count, err := repo.db.
 		NewSelect().

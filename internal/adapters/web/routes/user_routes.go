@@ -7,13 +7,15 @@ import (
 )
 
 // InitUserRoutes initializes user management endpoints.
-func InitUserRoutes(repo repos.UserRepo, validator handlers.Validator, app *fiber.App) {
+func InitUserRoutes(repo repos.UserRepo, app *fiber.App) {
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	v1.Get("/user/:id", handlers.HandleGetById(repo))
-	v1.Get("/user", handlers.HandleGetPage(repo))
-	v1.Delete("/user/:id", handlers.HandleDeleteById(repo))
-	v1.Post("/user", handlers.HandleCreate(repo, validator))
-	v1.Put("/user", handlers.HandleUpdate(repo, validator))
+	handler := handlers.NewUserHandler(repo)
+
+	v1.Get("/user/:id", handler.HandleGetById())
+	v1.Get("/user", handler.HandleGetPage())
+	v1.Delete("/user/:id", handler.HandleDeleteById())
+	v1.Post("/user", handler.HandleCreate())
+	v1.Put("/user", handler.HandleUpdate())
 }

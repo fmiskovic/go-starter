@@ -1,4 +1,3 @@
-// Package domain contains entities and domain logic.
 package domain
 
 import "time"

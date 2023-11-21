@@ -1,4 +1,3 @@
-// Package dto defines API contracts using DTOs, request, and response structs.
 package dto
 
 import (

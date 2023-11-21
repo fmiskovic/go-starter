@@ -56,7 +56,7 @@ func (s *Server) InitApp() error {
 	routes.InitSwaggerRoutes(app)
 
 	// init user api handlers
-	routes.InitUserRoutes(repos.NewUserRepo(s.Db), handlers.NewValidator(), app)
+	routes.InitUserRoutes(repos.NewUserRepo(s.Db), app)
 	// init static handlers
 	routes.InitStaticRoutes(app)
 

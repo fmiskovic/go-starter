@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/fmiskovic/go-starter/internal/adapters/repos"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/dto"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"strconv"
@@ -11,16 +10,28 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type UserHandler struct {
+	repo      ports.UserRepo[uint64]
+	validator Validator
+}
+
+func NewUserHandler(repo ports.UserRepo[uint64]) UserHandler {
+	return UserHandler{
+		repo:      repo,
+		validator: NewValidator(),
+	}
+}
+
 // HandleCreate creates handler func that is responsible for persisting new user entity.
 // Response is UserDto json.
-func HandleCreate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) error {
+func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		req, err := parseRequestBody(c)
 		if err != nil {
 			return err
 		}
 
-		if errs := validator.Validate(req); len(errs) > 0 {
+		if errs := uh.validator.Validate(req); len(errs) > 0 {
 			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
 		}
 
@@ -29,7 +40,7 @@ func HandleCreate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 
-		if err := repo.Create(c.Context(), u); err != nil {
+		if err := uh.repo.Create(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityCreate)).Error())
 		}
@@ -42,14 +53,14 @@ func HandleCreate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 
 // HandleUpdate creates handler func that is responsible for updating existing user entity.
 // Response is UserDto json.
-func HandleUpdate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) error {
+func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		req, err := parseRequestBody(c)
 		if err != nil {
 			return err
 		}
 
-		if errs := validator.Validate(req); len(errs) > 0 {
+		if errs := uh.validator.Validate(req); len(errs) > 0 {
 			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
 		}
 
@@ -57,7 +68,7 @@ func HandleUpdate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 		u := dto.ToUser(req)
 		u.UpdatedAt = time.Now()
 
-		if err := repo.Update(c.Context(), u); err != nil {
+		if err := uh.repo.Update(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityUpdate)).Error())
 		}
@@ -68,7 +79,7 @@ func HandleUpdate(repo repos.UserRepo, validator Validator) func(c *fiber.Ctx) e
 
 // HandleGetById creates handler func that is responsible for getting existing user entity by its ID.
 // Response is UserDto json.
-func HandleGetById(repo repos.UserRepo) func(c *fiber.Ctx) error {
+func (uh UserHandler) HandleGetById() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
@@ -82,7 +93,7 @@ func HandleGetById(repo repos.UserRepo) func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidId)).Error())
 		}
 
-		u, err := repo.GetById(c.Context(), id)
+		u, err := uh.repo.GetById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusNotFound,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetById)).Error())
@@ -93,7 +104,7 @@ func HandleGetById(repo repos.UserRepo) func(c *fiber.Ctx) error {
 }
 
 // HandleDeleteById creates handler func that is responsible for deleting existing user entity by its ID.
-func HandleDeleteById(repo repos.UserRepo) func(c *fiber.Ctx) error {
+func (uh UserHandler) HandleDeleteById() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
@@ -107,7 +118,7 @@ func HandleDeleteById(repo repos.UserRepo) func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidId)).Error())
 		}
 
-		err = repo.DeleteById(c.Context(), id)
+		err = uh.repo.DeleteById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrDeleteById)).Error())
@@ -121,7 +132,7 @@ func HandleDeleteById(repo repos.UserRepo) func(c *fiber.Ctx) error {
 // HandleGetPage returns page of users
 // HandleGetPage creates handler func that is responsible for getting page of user entities.
 // Response is json representing Page of UserDtos.
-func HandleGetPage(repo repos.UserRepo) func(c *fiber.Ctx) error {
+func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		size, err := strconv.Atoi(c.Query("size", "10"))
 		if err != nil {
@@ -142,7 +153,7 @@ func HandleGetPage(repo repos.UserRepo) func(c *fiber.Ctx) error {
 			Offset: offset,
 			Sort:   sort,
 		}
-		page, err := repo.GetPage(c.Context(), pageReq)
+		page, err := uh.repo.GetPage(c.Context(), pageReq)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetPage)).Error())

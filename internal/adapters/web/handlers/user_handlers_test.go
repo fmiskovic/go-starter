@@ -24,8 +24,8 @@ func TestHandleCreate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	valid := NewValidator()
-	app.Post("/user", HandleCreate(repo, valid))
+	handler := NewUserHandler(repo)
+	app.Post("/user", handler.HandleCreate())
 
 	tests := []struct {
 		name     string
@@ -47,10 +47,10 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				dto := &dto.UserDto{}
-				err := json.NewDecoder(resBody).Decode(dto)
+				userDto := &dto.UserDto{}
+				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
-				assert.Equal(dto.Email, "test1@fake.com")
+				assert.Equal(userDto.Email, "test1@fake.com")
 			},
 		},
 		{
@@ -90,8 +90,8 @@ func TestHandleUpdate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	valid := NewValidator()
-	app.Put("/user", HandleUpdate(repo, valid))
+	handler := NewUserHandler(repo)
+	app.Put("/user", handler.HandleUpdate())
 
 	tests := []struct {
 		name     string
@@ -117,10 +117,10 @@ func TestHandleUpdate(t *testing.T) {
 					}
 				}(resBody)
 
-				dto := &dto.UserDto{}
-				err := json.NewDecoder(resBody).Decode(dto)
+				userDto := &dto.UserDto{}
+				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
-				assert.Equal(dto.Location, "Vienna")
+				assert.Equal(userDto.Location, "Vienna")
 			},
 		},
 		{
@@ -172,7 +172,8 @@ func TestHandleDeleteById(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	app.Delete("/user/:id", HandleDeleteById(repo))
+	handler := NewUserHandler(repo)
+	app.Delete("/user/:id", handler.HandleDeleteById())
 
 	tests := []struct {
 		name     string
@@ -249,7 +250,8 @@ func TestHandleGetById(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	app.Get("/user/:id", HandleGetById(repo))
+	handler := NewUserHandler(repo)
+	app.Get("/user/:id", handler.HandleGetById())
 
 	tests := []struct {
 		name     string
@@ -273,11 +275,11 @@ func TestHandleGetById(t *testing.T) {
 					}
 				}(resBody)
 
-				dto := &dto.UserDto{}
-				err := json.NewDecoder(resBody).Decode(dto)
+				userDto := &dto.UserDto{}
+				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
-				assert.Equal(dto.Email, "test1@fake.com")
-				assert.Equal(dto.Gender.Numberfy(), user.MALE)
+				assert.Equal(userDto.Email, "test1@fake.com")
+				assert.Equal(userDto.Gender.Numberfy(), user.MALE)
 			},
 		},
 		{
@@ -335,7 +337,8 @@ func TestHandleGetPage(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	app.Get("/user", HandleGetPage(repo))
+	handler := NewUserHandler(repo)
+	app.Get("/user", handler.HandleGetPage())
 
 	tests := []struct {
 		name     string
