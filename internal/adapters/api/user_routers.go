@@ -14,8 +14,8 @@ func NewUserRouter(repo ports.UserRepo[uint64], app *fiber.App) UserRouter {
 	return UserRouter{repo: repo, app: app}
 }
 
-// InitRoutes initializes user management api.
-func (r UserRouter) InitRoutes() {
+// InitRouters initializes user management api.
+func (r UserRouter) InitRouters() {
 	api := r.app.Group("/api")
 	v1 := api.Group("/v1")
 

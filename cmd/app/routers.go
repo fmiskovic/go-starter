@@ -7,7 +7,7 @@ import (
 )
 
 // InitStaticRoutes initializes static view handlers to serve the UI.
-func initStaticRoutes(app *fiber.App) {
+func initStaticRouters(app *fiber.App) {
 	app.Static("/public", "./public")
 
 	app.Use(views.FlashMiddleware)
@@ -20,7 +20,7 @@ func initStaticRoutes(app *fiber.App) {
 }
 
 // InitSwaggerRoutes initializes Swagger UI.
-func initSwaggerRoutes(app *fiber.App) {
+func initSwaggerRouters(app *fiber.App) {
 	app.Use(swagger.New(swagger.Config{
 		BasePath: "/api/v1/",
 		FilePath: "./docs/v1/swagger.json",

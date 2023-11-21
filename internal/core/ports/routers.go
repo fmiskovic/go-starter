@@ -1,5 +1,5 @@
 package ports
 
 type Router interface {
-	InitRoutes()
+	InitRouters()
 }

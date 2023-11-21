@@ -33,8 +33,9 @@ func newServer(config ServerConfig) Server {
 	}
 	app := initApp(bunDb)
 	return Server{
-		Db:  bunDb,
-		App: app,
+		Config: config,
+		Db:     bunDb,
+		App:    app,
 	}
 }
 
@@ -72,12 +73,12 @@ func initApp(db *bun.DB) *fiber.App {
 	})
 
 	// init swagger
-	initSwaggerRoutes(app)
+	initSwaggerRouters(app)
 
 	// init user api handlers
-	api.NewUserRouter(repos.NewUserRepo(db), app).InitRoutes()
+	api.NewUserRouter(repos.NewUserRepo(db), app).InitRouters()
 	// init static handlers
-	initStaticRoutes(app)
+	initStaticRouters(app)
 
 	app.Use(recover.New())
 	return app

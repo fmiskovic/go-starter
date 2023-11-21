@@ -31,7 +31,7 @@ func init() {
 
 		conn = fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", user, pass, host, dbName)
 
-		listenAddr = utils.GetEnvOrDefault("HTTP_LISTEN_ADDR", "localhost:8080")
+		listenAddr = utils.GetEnvOrDefault("HTTP_LISTEN_ADDR", ":8080")
 	)
 
 	numCpu := runtime.NumCPU() + 1
@@ -54,4 +54,5 @@ func init() {
 		MaxOpenConn:  maxOpenConn,
 		MaxIdleConn:  maxIdleConn,
 	}
+	slog.Info("default server config is initialized")
 }
