@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"strconv"
 	"strings"
@@ -11,13 +12,13 @@ import (
 
 type UserHandler struct {
 	repo      ports.UserRepo[uint64]
-	validator ports.Validator
+	validator Validator
 }
 
 func NewUserHandler(repo ports.UserRepo[uint64]) UserHandler {
 	return UserHandler{
 		repo:      repo,
-		validator: ports.NewValidator(),
+		validator: NewValidator(),
 	}
 }
 
@@ -41,7 +42,7 @@ func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 
 		if err := uh.repo.Create(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityCreate)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrEntityCreate)).Error())
 		}
 
 		res := ToUserDto(u)
@@ -69,7 +70,7 @@ func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
 
 		if err := uh.repo.Update(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityUpdate)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrEntityUpdate)).Error())
 		}
 
 		return toJson(c, ToUserDto(u))
@@ -83,19 +84,19 @@ func (uh UserHandler) HandleGetById() func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithAppErr(ports.ErrInvalidId)).Error())
+				New(WithAppErr(ErrInvalidId)).Error())
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidId)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())
 		}
 
 		u, err := uh.repo.GetById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusNotFound,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetById)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrGetById)).Error())
 		}
 
 		return toJson(c, ToUserDto(u))
@@ -108,19 +109,19 @@ func (uh UserHandler) HandleDeleteById() func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithAppErr(ports.ErrInvalidId)).Error())
+				New(WithAppErr(ErrInvalidId)).Error())
 		}
 
 		id, err := strconv.ParseUint(sId, 10, 64)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidId)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())
 		}
 
 		err = uh.repo.DeleteById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrDeleteById)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrDeleteById)).Error())
 		}
 
 		c.Status(fiber.StatusNoContent)
@@ -136,18 +137,18 @@ func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
 		size, err := strconv.Atoi(c.Query("size", "10"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidPageSize)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrInvalidPageSize)).Error())
 		}
 
 		offset, err := strconv.Atoi(c.Query("offset", "0"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrInvalidPageOffset)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrInvalidPageOffset)).Error())
 		}
 
 		sort := resolveSort(c)
 
-		pageReq := ports.Pageable{
+		pageReq := domain.Pageable{
 			Size:   size,
 			Offset: offset,
 			Sort:   sort,
@@ -155,7 +156,7 @@ func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
 		page, err := uh.repo.GetPage(c.Context(), pageReq)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetPage)).Error())
+				New(WithSvcErr(err), WithAppErr(ErrGetPage)).Error())
 		}
 		return toJson(c, ToPageDto(page))
 	}
@@ -165,7 +166,7 @@ func parseRequestBody(c *fiber.Ctx) (*UserDto, error) {
 	var r = new(UserDto)
 	if err := c.BodyParser(r); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest,
-			ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrParseReqBody)).Error())
+			New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
 	}
 	return r, nil
 }
@@ -178,25 +179,25 @@ func toJson(c *fiber.Ctx, t interface{}) error {
 }
 
 // resolveSort parses the sort parameter into a sort object.
-func resolveSort(c *fiber.Ctx) ports.Sort {
+func resolveSort(c *fiber.Ctx) domain.Sort {
 	// extract sort parameters from query parameters
 	sortParam := c.Query("sort", "")
 	if sortParam == "" {
-		return ports.NewSort()
+		return domain.NewSort()
 	}
 	// split the sort parameter into individual sort orderParams
 	orderParams := strings.Split(sortParam, ",")
 
-	var orders []*ports.Order
+	var orders []*domain.Order
 	// remove any leading or trailing spaces from each sort order
 	for i := range orderParams {
 		o := strings.Split(strings.TrimSpace(orderParams[i]), " ")
-		order := ports.NewOrder(ports.WithProperty(o[0]), ports.WithDirection(ports.ASC))
+		order := domain.NewOrder(domain.WithProperty(o[0]), domain.WithDirection(domain.ASC))
 		if len(o) == 2 {
-			order.Direction = ports.Direction(o[1])
+			order.Direction = domain.Direction(o[1])
 		}
 		orders = append(orders, order)
 	}
 
-	return ports.NewSort(orders...)
+	return domain.NewSort(orders...)
 }

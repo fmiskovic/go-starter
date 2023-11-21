@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
-	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -67,14 +66,14 @@ func (repo UserRepo) DeleteById(ctx context.Context, id uint64) error {
 }
 
 // GetPage respond with a page of users.
-func (repo UserRepo) GetPage(ctx context.Context, p ports.Pageable) (domain.Page[user.User], error) {
+func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Page[user.User], error) {
 	var users []user.User
 	count, err := repo.db.
 		NewSelect().
 		Model(&users).
 		Limit(p.Size).
 		Offset(p.Offset).
-		Order(ports.StringifyOrders(p.Sort)...).
+		Order(domain.StringifyOrders(p.Sort)...).
 		ScanAndCount(ctx)
 
 	totalPages := 0

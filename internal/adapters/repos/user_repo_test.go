@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
-	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"github.com/matryer/is"
 	"strings"
@@ -283,7 +282,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 
 	// setup test cases
 	type args struct {
-		pageable ports.Pageable
+		pageable domain.Pageable
 	}
 	tests := []struct {
 		name    string
@@ -295,10 +294,10 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request should return page of users",
 			args: args{
-				pageable: ports.Pageable{
+				pageable: domain.Pageable{
 					Offset: 0,
 					Size:   5,
-					Sort:   ports.NewSort(ports.NewOrder(ports.WithProperty("email"))),
+					Sort:   domain.NewSort(domain.NewOrder(domain.WithProperty("email"))),
 				},
 			},
 			given: func(t *testing.T) error {
@@ -310,7 +309,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 		{
 			name: "given page request without sort should return page of users",
 			args: args{
-				pageable: ports.Pageable{
+				pageable: domain.Pageable{
 					Offset: 0,
 					Size:   5,
 				},
