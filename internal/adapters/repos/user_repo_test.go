@@ -162,7 +162,7 @@ func TestUserRepo_Create(t *testing.T) {
 		{
 			name:    "given nil user should return error",
 			args:    args{u: nil},
-			wantErr: ports.NilEntityError,
+			wantErr: NilEntityError,
 		},
 		{
 			name:    "given user with id should return error",
@@ -234,7 +234,7 @@ func TestUserRepo_Update(t *testing.T) {
 				return nil
 			},
 			verify:  func(t *testing.T) {},
-			wantErr: ports.NilEntityError,
+			wantErr: NilEntityError,
 		},
 		{
 			name: "given user with non existing id should return error",

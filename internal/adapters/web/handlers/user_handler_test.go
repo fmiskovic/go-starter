@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
-	"github.com/fmiskovic/go-starter/internal/adapters/web/dto"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
@@ -30,14 +29,14 @@ func TestHandleCreate(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *dto.UserDto
+		reqBody  *UserDto
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:     "given valid user request should return 201",
 			route:    "/user",
-			reqBody:  dto.NewUserDto(dto.Email("test1@fake.com")),
+			reqBody:  NewUserDto(Email("test1@fake.com")),
 			wantCode: 201,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -47,7 +46,7 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &dto.UserDto{}
+				userDto := &UserDto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Email, "test1@fake.com")
@@ -63,7 +62,7 @@ func TestHandleCreate(t *testing.T) {
 		{
 			name:     "given invalid user request email should return 400",
 			route:    "/user",
-			reqBody:  dto.NewUserDto(dto.Email("")),
+			reqBody:  NewUserDto(Email("")),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
@@ -96,7 +95,7 @@ func TestHandleUpdate(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *dto.UserDto
+		reqBody  *UserDto
 		given    func(t *testing.T) error
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
@@ -104,7 +103,7 @@ func TestHandleUpdate(t *testing.T) {
 		{
 			name:     "given valid user request should return 200",
 			route:    "/user",
-			reqBody:  dto.NewUserDto(dto.Id(1), dto.Email("test1@fake.com"), dto.Location("Vienna")),
+			reqBody:  NewUserDto(Id(1), Email("test1@fake.com"), Location("Vienna")),
 			wantCode: 200,
 			given: func(t *testing.T) error {
 				return repo.Create(context.Background(), &user.User{Email: "test1@fake.com"})
@@ -117,7 +116,7 @@ func TestHandleUpdate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &dto.UserDto{}
+				userDto := &UserDto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Location, "Vienna")
@@ -136,7 +135,7 @@ func TestHandleUpdate(t *testing.T) {
 		{
 			name:    "given invalid user request email should return 400",
 			route:   "/user",
-			reqBody: dto.NewUserDto(dto.Email("")),
+			reqBody: NewUserDto(Email("")),
 			given: func(t *testing.T) error {
 				return nil
 			},
@@ -275,7 +274,7 @@ func TestHandleGetById(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &dto.UserDto{}
+				userDto := &UserDto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Email, "test1@fake.com")
@@ -362,7 +361,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[dto.UserDto]
+				var pageDto domain.Page[UserDto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
@@ -384,7 +383,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[dto.UserDto]
+				var pageDto domain.Page[UserDto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
@@ -406,7 +405,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[dto.UserDto]
+				var pageDto domain.Page[UserDto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(len(pageDto.Elements) == 0)

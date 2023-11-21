@@ -35,7 +35,7 @@ func (repo UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error)
 // Create persists new user entity.
 func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 	if u == nil {
-		return ports.NilEntityError
+		return NilEntityError
 	}
 	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
 		return err
@@ -47,7 +47,7 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 // Update existing persisted user entity.
 func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
-		return ports.NilEntityError
+		return NilEntityError
 	}
 	u.UpdatedAt = time.Now()
 	if _, err := repo.db.NewUpdate().Model(u).OmitZero().Where("id = ?", u.ID).Exec(ctx); err != nil {

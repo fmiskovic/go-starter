@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
+	"github.com/fmiskovic/go-starter/internal/adapters/views"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
-	"github.com/fmiskovic/go-starter/internal/adapters/web/routes"
 	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/uptrace/bun"
 )
 
@@ -64,20 +65,21 @@ func initDb(config ServerConfig) (*bun.DB, error) {
 
 func initApp(db *bun.DB) *fiber.App {
 	app := fiber.New(fiber.Config{
-		ErrorHandler:          handlers.ErrorHandler,
+		ErrorHandler:          views.ErrorHandler,
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
 	})
 
 	// init swagger
-	routes.InitSwaggerRoutes(app)
+	initSwaggerRoutes(app)
 
 	// init user api handlers
-	routes.InitUserRoutes(repos.NewUserRepo(db), app)
+	handlers.InitUserRoutes(repos.NewUserRepo(db), app)
 	// init static handlers
-	routes.InitStaticRoutes(app)
+	initStaticRoutes(app)
 
+	app.Use(recover.New())
 	return app
 }
 

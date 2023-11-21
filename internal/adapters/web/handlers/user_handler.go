@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/fmiskovic/go-starter/internal/adapters/web/dto"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"strconv"
 	"strings"
@@ -36,7 +35,7 @@ func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 		}
 
 		// convert request to u entity
-		u := dto.ToUser(req)
+		u := ToUser(req)
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 
@@ -45,7 +44,7 @@ func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityCreate)).Error())
 		}
 
-		res := dto.ToUserDto(u)
+		res := ToUserDto(u)
 		c.Status(fiber.StatusCreated)
 		return toJson(c, res)
 	}
@@ -65,7 +64,7 @@ func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
 		}
 
 		// convert request to user entity
-		u := dto.ToUser(req)
+		u := ToUser(req)
 		u.UpdatedAt = time.Now()
 
 		if err := uh.repo.Update(c.Context(), u); err != nil {
@@ -73,7 +72,7 @@ func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrEntityUpdate)).Error())
 		}
 
-		return toJson(c, dto.ToUserDto(u))
+		return toJson(c, ToUserDto(u))
 	}
 }
 
@@ -99,7 +98,7 @@ func (uh UserHandler) HandleGetById() func(c *fiber.Ctx) error {
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetById)).Error())
 		}
 
-		return toJson(c, dto.ToUserDto(u))
+		return toJson(c, ToUserDto(u))
 	}
 }
 
@@ -158,12 +157,12 @@ func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrGetPage)).Error())
 		}
-		return toJson(c, dto.ToPageDto(page))
+		return toJson(c, ToPageDto(page))
 	}
 }
 
-func parseRequestBody(c *fiber.Ctx) (*dto.UserDto, error) {
-	var r = new(dto.UserDto)
+func parseRequestBody(c *fiber.Ctx) (*UserDto, error) {
+	var r = new(UserDto)
 	if err := c.BodyParser(r); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest,
 			ports.New(ports.WithSvcErr(err), ports.WithAppErr(ports.ErrParseReqBody)).Error())

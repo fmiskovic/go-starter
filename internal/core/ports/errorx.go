@@ -3,7 +3,6 @@ package ports
 import "errors"
 
 var (
-	NilEntityError       = errors.New("entity can not be nil")
 	ErrParseReqBody      = errors.New("failed to parse request body")
 	ErrEntityCreate      = errors.New("failed to create entity")
 	ErrEntityUpdate      = errors.New("failed to update entity")
