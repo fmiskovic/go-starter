@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-var DefaultConfig ServerConfig
+var defaultConfig ServerConfig
 
 // ServerConfig holds server configuration.
 type ServerConfig struct {
@@ -48,45 +48,10 @@ func init() {
 		maxIdleConn = numCpu
 	}
 
-	DefaultConfig = New(
-		WithListenAddr(listenAddr),
-		WithDbConnString(conn),
-		WithMaxOpenConn(maxOpenConn),
-		WithIdleOpenConn(maxIdleConn),
-	)
-}
-
-// New instantiate new ServerConfig with the given options.
-func New(opts ...ServerConfigOption) ServerConfig {
-	conf := &ServerConfig{}
-	for _, opt := range opts {
-		opt(conf)
-	}
-	return *conf
-}
-
-type ServerConfigOption func(*ServerConfig)
-
-func WithListenAddr(addr string) ServerConfigOption {
-	return func(c *ServerConfig) {
-		c.ListenAddr = addr
-	}
-}
-
-func WithDbConnString(conn string) ServerConfigOption {
-	return func(c *ServerConfig) {
-		c.DbConnString = conn
-	}
-}
-
-func WithMaxOpenConn(maxOpen int) ServerConfigOption {
-	return func(c *ServerConfig) {
-		c.MaxOpenConn = maxOpen
-	}
-}
-
-func WithIdleOpenConn(maxIdle int) ServerConfigOption {
-	return func(c *ServerConfig) {
-		c.MaxIdleConn = maxIdle
+	defaultConfig = ServerConfig{
+		ListenAddr:   listenAddr,
+		DbConnString: conn,
+		MaxOpenConn:  maxOpenConn,
+		MaxIdleConn:  maxIdleConn,
 	}
 }

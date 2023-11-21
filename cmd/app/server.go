@@ -1,9 +1,8 @@
-package server
+package main
 
 import (
 	"errors"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
-	"github.com/fmiskovic/go-starter/internal/adapters/server/config"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/routes"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
@@ -20,31 +19,47 @@ import (
 
 // Server holds configuration, database connection and fiber app.
 type Server struct {
-	Config config.ServerConfig
+	Config ServerConfig
 	Db     *bun.DB
 	App    *fiber.App
 }
 
-// New instantiate new Server with specified config.
-func New(config config.ServerConfig) *Server {
-	return &Server{Config: config}
-}
-
-// InitDb connects Server to the DB.
-func (s *Server) InitDb() error {
-	ports.Database{
-		Uri:         config.DefaultConfig.DbConnString,
-		MaxOpenConn: config.DefaultConfig.MaxOpenConn,
-		MaxIdleConn: config.DefaultConfig.MaxOpenConn,
-	}.Connect()
-	return nil
-}
-
-// InitApp initialises fiber app.
-func (s *Server) InitApp() error {
-	if s.Db == nil {
-		return errors.New("DB must be initialized first")
+// newServer instantiate new Server with specified config.
+func newServer(config ServerConfig) Server {
+	db := initDb(config)
+	app := initApp(db)
+	return Server{
+		Db:  db,
+		App: app,
 	}
+}
+
+// Ready returns true if everything is properly configured.
+func (s Server) ready() bool {
+	return s.Db != nil && s.App != nil
+}
+
+// Start the server.
+func (s Server) start() error {
+	if !s.ready() {
+		return errors.New("server is not ready")
+	}
+
+	slog.Info("the app is up and running...", "address", s.Config.ListenAddr)
+	return s.App.Listen(s.Config.ListenAddr)
+}
+
+// ----- INITS ----- //
+
+func initDb(config ServerConfig) *bun.DB {
+	return ports.Database{
+		Uri:         config.DbConnString,
+		MaxOpenConn: config.MaxOpenConn,
+		MaxIdleConn: config.MaxOpenConn,
+	}.Connect()
+}
+
+func initApp(db *bun.DB) *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler:          handlers.ErrorHandler,
 		DisableStartupMessage: true,
@@ -56,27 +71,11 @@ func (s *Server) InitApp() error {
 	routes.InitSwaggerRoutes(app)
 
 	// init user api handlers
-	routes.InitUserRoutes(repos.NewUserRepo(s.Db), app)
+	routes.InitUserRoutes(repos.NewUserRepo(db), app)
 	// init static handlers
 	routes.InitStaticRoutes(app)
 
-	s.App = app
-	return nil
-}
-
-// Ready returns true if everything is properly configured.
-func (s *Server) Ready() bool {
-	return s.Db != nil && s.App != nil
-}
-
-// Start the server.
-func (s *Server) Start() error {
-	if !s.Ready() {
-		return errors.New("server is not ready")
-	}
-
-	slog.Info("the app is up and running...", "address", s.Config.ListenAddr)
-	return s.App.Listen(s.Config.ListenAddr)
+	return app
 }
 
 func initViews() *django.Engine {

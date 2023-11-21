@@ -12,13 +12,13 @@ import (
 
 type UserHandler struct {
 	repo      ports.UserRepo[uint64]
-	validator Validator
+	validator ports.Validator
 }
 
 func NewUserHandler(repo ports.UserRepo[uint64]) UserHandler {
 	return UserHandler{
 		repo:      repo,
-		validator: NewValidator(),
+		validator: ports.NewValidator(),
 	}
 }
 

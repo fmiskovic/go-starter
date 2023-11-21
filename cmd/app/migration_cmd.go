@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/adapters/server/config"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/uptrace/bun"
 	"strings"
@@ -155,8 +154,8 @@ func newMigrationCmd(migrations *migrate.Migrations) *cli.Command {
 
 func connectDb() *bun.DB {
 	return ports.Database{
-		Uri:         config.DefaultConfig.DbConnString,
-		MaxOpenConn: config.DefaultConfig.MaxOpenConn,
-		MaxIdleConn: config.DefaultConfig.MaxOpenConn,
+		Uri:         defaultConfig.DbConnString,
+		MaxOpenConn: defaultConfig.MaxOpenConn,
+		MaxIdleConn: defaultConfig.MaxOpenConn,
 	}.Connect()
 }

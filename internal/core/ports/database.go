@@ -10,6 +10,7 @@ import (
 	"log/slog"
 )
 
+// Database holds properties needed for making db connection.
 type Database struct {
 	Uri         string
 	MaxOpenConn int
