@@ -75,7 +75,7 @@ func initApp(db *bun.DB) *fiber.App {
 	initSwaggerRoutes(app)
 
 	// init user api handlers
-	api.InitUserRoutes(repos.NewUserRepo(db), app)
+	api.NewUserRouter(repos.NewUserRepo(db), app).InitRoutes()
 	// init static handlers
 	initStaticRoutes(app)
 

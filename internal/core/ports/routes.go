@@ -1,4 +1,5 @@
 package ports
 
-type Route struct {
+type Router interface {
+	InitRoutes()
 }
