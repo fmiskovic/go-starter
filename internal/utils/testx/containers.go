@@ -2,13 +2,16 @@ package testx
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/core/ports"
-	"github.com/fmiskovic/go-starter/internal/helper"
+	"github.com/fmiskovic/go-starter/internal/utils"
 	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+	"github.com/uptrace/bun/driver/pgdriver"
+	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/migrate"
 	"log/slog"
 	"runtime"
@@ -42,9 +45,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				panic(err)
 			}
 
-			dbName := helper.GetEnvOrDefault("DB_NAME", "testx-db")
-			dbUser := helper.GetEnvOrDefault("DB_USER", "testx")
-			dbPassword := helper.GetEnvOrDefault("DB_PASSWORD", "testx")
+			dbName := utils.GetEnvOrDefault("DB_NAME", "testx-db")
+			dbUser := utils.GetEnvOrDefault("DB_USER", "testx")
+			dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "testx")
 
 			dbUri := fmt.Sprintf(
 				"postgresql://%s:%s@%s/%s?sslmode=disable",
@@ -55,13 +58,12 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 			)
 
 			conn := runtime.NumCPU() + 1
-			bunDb = ports.Database{
-				Uri:         dbUri,
-				MaxOpenConn: conn,
-				MaxIdleConn: conn,
-			}.Connect()
+			bunDb, err = connectDb(dbUri, conn)
+			if err != nil {
+				t.Fatalf("db connection failed: %v", err)
+			}
 
-			if err := migrateDB(ctx, bunDb); err != nil {
+			if err = migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)
 			}
 			break
@@ -77,10 +79,26 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 	}, ctx, bunDb
 }
 
+func connectDb(uri string, conn int) (*bun.DB, error) {
+	sqlDb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(uri)))
+	if err := sqlDb.Ping(); err != nil {
+		return nil, err
+	}
+
+	sqlDb.SetMaxOpenConns(conn)
+	sqlDb.SetMaxIdleConns(conn)
+	bunDb := bun.NewDB(sqlDb, pgdialect.New())
+	if utils.IsDev() {
+		bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
+	}
+
+	return bunDb, nil
+}
+
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {
-	dbName := helper.GetEnvOrDefault("DB_NAME", "testx-db")
-	dbUser := helper.GetEnvOrDefault("DB_USER", "testx")
-	dbPassword := helper.GetEnvOrDefault("DB_PASSWORD", "testx")
+	dbName := utils.GetEnvOrDefault("DB_NAME", "testx-db")
+	dbUser := utils.GetEnvOrDefault("DB_USER", "testx")
+	dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "testx")
 
 	// Define a Postgres container configuration.
 	req := testcontainers.ContainerRequest{

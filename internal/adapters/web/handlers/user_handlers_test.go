@@ -9,7 +9,7 @@ import (
 	"github.com/fmiskovic/go-starter/internal/adapters/web/dto"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
-	"github.com/fmiskovic/go-starter/internal/helper/testx"
+	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"io"
 	"net/http"
 	"net/http/httptest"

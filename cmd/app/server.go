@@ -2,10 +2,10 @@ package main
 
 import (
 	"errors"
+	"github.com/fmiskovic/go-starter/internal/adapters/db"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
 	"github.com/fmiskovic/go-starter/internal/adapters/web/routes"
-	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
@@ -26,10 +26,13 @@ type Server struct {
 
 // newServer instantiate new Server with specified config.
 func newServer(config ServerConfig) Server {
-	db := initDb(config)
-	app := initApp(db)
+	bunDb, err := initDb(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	app := initApp(bunDb)
 	return Server{
-		Db:  db,
+		Db:  bunDb,
 		App: app,
 	}
 }
@@ -51,12 +54,12 @@ func (s Server) start() error {
 
 // ----- INITS ----- //
 
-func initDb(config ServerConfig) *bun.DB {
-	return ports.Database{
+func initDb(config ServerConfig) (*bun.DB, error) {
+	return db.Database{
 		Uri:         config.DbConnString,
 		MaxOpenConn: config.MaxOpenConn,
 		MaxIdleConn: config.MaxOpenConn,
-	}.Connect()
+	}.OpenDb()
 }
 
 func initApp(db *bun.DB) *fiber.App {
