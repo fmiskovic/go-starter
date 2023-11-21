@@ -1,4 +1,4 @@
-package handlers
+package api
 
 import (
 	"github.com/fmiskovic/go-starter/internal/core/ports"

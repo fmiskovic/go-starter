@@ -2,10 +2,10 @@ package main
 
 import (
 	"errors"
+	"github.com/fmiskovic/go-starter/internal/adapters/api"
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
 	"github.com/fmiskovic/go-starter/internal/adapters/views"
-	"github.com/fmiskovic/go-starter/internal/adapters/web/handlers"
 	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
@@ -75,7 +75,7 @@ func initApp(db *bun.DB) *fiber.App {
 	initSwaggerRoutes(app)
 
 	// init user api handlers
-	handlers.InitUserRoutes(repos.NewUserRepo(db), app)
+	api.InitUserRoutes(repos.NewUserRepo(db), app)
 	// init static handlers
 	initStaticRoutes(app)
 
