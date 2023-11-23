@@ -2,12 +2,14 @@ package repos
 
 import (
 	"errors"
+	"strings"
+	"testing"
+
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
+	"github.com/google/uuid"
 	"github.com/matryer/is"
-	"strings"
-	"testing"
 )
 
 func TestUserRepo_GetById(t *testing.T) {
@@ -25,28 +27,26 @@ func TestUserRepo_GetById(t *testing.T) {
 	repo := NewUserRepo(bunDb)
 
 	// setup test cases
-	type args struct {
-		id uint64
-	}
 	tests := []struct {
 		name    string
-		args    args
-		given   func(t *testing.T) error
+		given   func(t *testing.T) (uuid.UUID, error)
 		wantErr error
 	}{
 		{
 			name: "given valid id should return user",
-			args: args{id: 1},
-			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test1@gmail.com"})
+			given: func(t *testing.T) (uuid.UUID, error) {
+				u := user.New(user.Email("test1@gmail.com"))
+				err := repo.Create(ctx, u)
+				return u.ID, err
 			},
 			wantErr: nil,
 		},
 		{
 			name: "given invalid id should return error",
-			args: args{id: 111},
-			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test2@gmail.com"})
+			given: func(t *testing.T) (uuid.UUID, error) {
+				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
+				id, err := uuid.NewRandom()
+				return id, err
 			},
 			wantErr: errors.New("sql: no rows in result set"),
 		},
@@ -54,14 +54,14 @@ func TestUserRepo_GetById(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.given(t)
+			id, err := tt.given(t)
 			assert.NoErr(err)
 
-			u, err := repo.GetById(ctx, tt.args.id)
+			u, err := repo.GetById(ctx, id)
 
 			assert.Equal(tt.wantErr, err)
 			if u != nil {
-				assert.Equal(u.ID, tt.args.id)
+				assert.Equal(u.ID, id)
 			}
 		})
 	}
@@ -82,24 +82,21 @@ func TestUserRepo_DeleteById(t *testing.T) {
 	repo := NewUserRepo(bunDb)
 
 	// setup test cases
-	type args struct {
-		id uint64
-	}
 	tests := []struct {
 		name    string
-		args    args
-		given   func(t *testing.T) error
-		verify  func(t *testing.T)
+		given   func(t *testing.T) (uuid.UUID, error)
+		verify  func(id uuid.UUID, t *testing.T)
 		wantErr error
 	}{
 		{
 			name: "given valid id should delete user",
-			args: args{id: 1},
-			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test1@gmail.com"})
+			given: func(t *testing.T) (uuid.UUID, error) {
+				u := user.New(user.Email("test1@gmail.com"))
+				err := repo.Create(ctx, u)
+				return u.ID, err
 			},
-			verify: func(t *testing.T) {
-				u, err := repo.GetById(ctx, 1)
+			verify: func(id uuid.UUID, t *testing.T) {
+				u, err := repo.GetById(ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 				assert.True(u == nil)
 			},
@@ -107,12 +104,13 @@ func TestUserRepo_DeleteById(t *testing.T) {
 		},
 		{
 			name: "given invalid id should not return error",
-			args: args{id: 111},
-			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test2@gmail.com"})
+			given: func(t *testing.T) (uuid.UUID, error) {
+				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
+				id, err := uuid.NewRandom()
+				return id, err
 			},
-			verify: func(t *testing.T) {
-				_, err := repo.GetById(ctx, 111)
+			verify: func(id uuid.UUID, t *testing.T) {
+				_, err := repo.GetById(ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 			},
 			wantErr: nil,
@@ -121,11 +119,12 @@ func TestUserRepo_DeleteById(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.given(t)
+			id, err := tt.given(t)
 			assert.NoErr(err)
 
-			err = repo.DeleteById(ctx, tt.args.id)
+			err = repo.DeleteById(ctx, id)
 			assert.Equal(tt.wantErr, err)
+			tt.verify(id, t)
 		})
 	}
 }
@@ -155,7 +154,7 @@ func TestUserRepo_Create(t *testing.T) {
 	}{
 		{
 			name:    "given valid user should not return error",
-			args:    args{u: &user.User{Email: "test1@fake.com"}},
+			args:    args{u: user.New(user.Email("test1@fake.com"))},
 			wantErr: nil,
 		},
 		{
@@ -164,13 +163,8 @@ func TestUserRepo_Create(t *testing.T) {
 			wantErr: NilEntityError,
 		},
 		{
-			name:    "given user with id should return error",
-			args:    args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "test1@fake.com"}},
-			wantErr: errors.New("duplicate key value violates unique constraint"),
-		},
-		{
 			name:    "given user with non-unique email should return error",
-			args:    args{u: &user.User{Email: "test1@fake.com"}},
+			args:    args{u: user.New(user.Email("test1@fake.com"))},
 			wantErr: errors.New("duplicate key value violates unique constraint \"users_email_key\""),
 		},
 	}
@@ -204,45 +198,51 @@ func TestUserRepo_Update(t *testing.T) {
 
 	// setup test cases
 	type args struct {
-		u *user.User
+		u *user.User // for update
 	}
 	tests := []struct {
 		name    string
 		args    args
-		given   func() error
-		verify  func(t *testing.T)
+		given   func() (*user.User, error)
+		verify  func(id uuid.UUID, t *testing.T)
 		wantErr error
 	}{
 		{
 			name: "given valid user input should not return error",
-			args: args{u: &user.User{Entity: domain.Entity{ID: 1}, Email: "testx@testx.com"}},
-			given: func() error {
-				return repo.Create(ctx, &user.User{Email: "test1@fake.com"})
+			args: args{
+				u: user.New(user.Email("updated1@fake.com")),
 			},
-			verify: func(t *testing.T) {
-				u, err := repo.GetById(ctx, 1)
+			given: func() (*user.User, error) {
+				u := user.New(user.Email("test1@fake.com"))
+				err := repo.Create(ctx, u)
+				return u, err
+			},
+			verify: func(id uuid.UUID, t *testing.T) {
+				u, err := repo.GetById(ctx, id)
 				assert.NoErr(err)
-				assert.Equal("testx@testx.com", u.Email)
+				assert.Equal("updated1@fake.com", u.Email)
 			},
 			wantErr: nil,
 		},
 		{
 			name: "given nil user input should return error",
 			args: args{u: nil},
-			given: func() error {
-				return nil
+			given: func() (*user.User, error) {
+				return user.New(), nil
 			},
-			verify:  func(t *testing.T) {},
+			verify:  func(id uuid.UUID, t *testing.T) {},
 			wantErr: NilEntityError,
 		},
 		{
 			name: "given user with non existing id should return error",
-			args: args{u: &user.User{Entity: domain.Entity{ID: 111}}},
-			given: func() error {
-				return nil
+			args: args{
+				u: user.New(user.Email("updated3@fake.com")),
 			},
-			verify: func(t *testing.T) {
-				_, err := repo.GetById(ctx, 111)
+			given: func() (*user.User, error) {
+				return user.New(), nil
+			},
+			verify: func(id uuid.UUID, t *testing.T) {
+				_, err := repo.GetById(ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 			},
 			wantErr: nil,
@@ -251,8 +251,12 @@ func TestUserRepo_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.given()
+			u, err := tt.given()
 			assert.NoErr(err)
+
+			if tt.args.u != nil && u != nil {
+				tt.args.u.ID = u.ID
+			}
 
 			err = repo.Update(ctx, tt.args.u)
 			if tt.wantErr != nil {
@@ -261,7 +265,7 @@ func TestUserRepo_Update(t *testing.T) {
 				assert.NoErr(err)
 			}
 
-			tt.verify(t)
+			tt.verify(u.ID, t)
 		})
 	}
 }
@@ -301,7 +305,8 @@ func TestUserRepo_GetPage(t *testing.T) {
 				},
 			},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test11@gmail.com"})
+				u := user.New(user.Email("test11@gmail.com"))
+				return repo.Create(ctx, u)
 			},
 			want:    "test11@gmail.com",
 			wantErr: nil,
@@ -315,7 +320,8 @@ func TestUserRepo_GetPage(t *testing.T) {
 				},
 			},
 			given: func(t *testing.T) error {
-				return repo.Create(ctx, &user.User{Email: "test12@gmail.com"})
+				u := user.New(user.Email("test12@gmail.com"))
+				return repo.Create(ctx, u)
 			},
 			want:    "test11@gmail.com",
 			wantErr: nil,

@@ -1,14 +1,17 @@
 package api
 
 import (
+	"time"
+
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
-	"time"
+	"github.com/fmiskovic/go-starter/internal/utils"
+	"github.com/google/uuid"
 )
 
 // UserDto represents user DTO.
 type UserDto struct {
-	ID          uint64    `json:"id"`
+	ID          string    `json:"id"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 	Email       string    `validate:"required,min=3" json:"email"`
@@ -30,7 +33,7 @@ func NewUserDto(opts ...UserDtoOption) *UserDto {
 
 type UserDtoOption func(req *UserDto)
 
-func Id(id uint64) UserDtoOption {
+func Id(id string) UserDtoOption {
 	return func(r *UserDto) {
 		r.ID = id
 	}
@@ -66,6 +69,12 @@ func Sex(g user.Gender) UserDtoOption {
 	}
 }
 
+func Enabled(e bool) UserDtoOption {
+	return func(r *UserDto) {
+		r.Enabled = e
+	}
+}
+
 // GenderDto can be Male, Female and Other.
 type GenderDto string
 
@@ -83,32 +92,43 @@ func (g GenderDto) Numberfy() user.Gender {
 	}
 }
 
-// ToUser converts UserDto into a user.User pointer.
-func ToUser(r *UserDto) *user.User {
-	return &user.User{
-		Entity: domain.Entity{
-			ID: r.ID,
-		},
-		Email:       r.Email,
-		FullName:    r.FullName,
-		DateOfBirth: r.DateOfBirth,
-		Location:    r.Location,
-		Gender:      r.Gender.Numberfy(),
-		Enabled:     r.Enabled,
+// ToUser converts UserDto into a User pointer.
+func ToUser(r *UserDto) (*user.User, error) {
+	var id uuid.UUID
+	var err error
+
+	if utils.IsBlank(r.ID) {
+		id, err = uuid.NewRandom()
+	} else {
+		id, err = uuid.Parse(r.ID)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user.New(
+		user.Id(id),
+		user.Email(r.Email),
+		user.FullName(r.FullName),
+		user.DateOfBirth(r.DateOfBirth),
+		user.Location(r.Location),
+		user.Enabled(r.Enabled),
+		user.Sex(r.Gender.Numberfy()),
+	), nil
 }
 
-// ToUser converts User into a UserDto pointer.
+// ToUserDto converts User into a UserDto pointer.
 func ToUserDto(u *user.User) *UserDto {
-	return &UserDto{
-		ID:          u.ID,
-		Email:       u.Email,
-		FullName:    u.FullName,
-		DateOfBirth: u.DateOfBirth,
-		Location:    u.Location,
-		Gender:      GenderDto(u.Gender.Stringify()),
-		Enabled:     u.Enabled,
-	}
+	return NewUserDto(
+		Id(u.ID.String()),
+		Email(u.Email),
+		FullName(u.FullName),
+		DateOfBirth(u.DateOfBirth),
+		Location(u.Location),
+		Sex(u.Gender),
+		Enabled(u.Enabled),
+	)
 }
 
 // ToPageDto converts internal Page into a DtoPage.

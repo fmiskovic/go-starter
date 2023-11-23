@@ -1,21 +1,23 @@
 package api
 
 import (
-	"github.com/fmiskovic/go-starter/internal/core/domain"
-	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/ports"
+	"github.com/google/uuid"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type UserHandler struct {
-	repo      ports.UserRepo[uint64]
+	repo      ports.UserRepo[uuid.UUID]
 	validator Validator
 }
 
-func NewUserHandler(repo ports.UserRepo[uint64]) UserHandler {
+func NewUserHandler(repo ports.UserRepo[uuid.UUID]) UserHandler {
 	return UserHandler{
 		repo:      repo,
 		validator: NewValidator(),
@@ -36,7 +38,11 @@ func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 		}
 
 		// convert request to u entity
-		u := ToUser(req)
+		u, err := ToUser(req)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
+		}
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 
@@ -65,7 +71,11 @@ func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
 		}
 
 		// convert request to user entity
-		u := ToUser(req)
+		u, err := ToUser(req)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
+		}
 		u.UpdatedAt = time.Now()
 
 		if err := uh.repo.Update(c.Context(), u); err != nil {
@@ -87,7 +97,7 @@ func (uh UserHandler) HandleGetById() func(c *fiber.Ctx) error {
 				New(WithAppErr(ErrInvalidId)).Error())
 		}
 
-		id, err := strconv.ParseUint(sId, 10, 64)
+		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())
@@ -112,7 +122,7 @@ func (uh UserHandler) HandleDeleteById() func(c *fiber.Ctx) error {
 				New(WithAppErr(ErrInvalidId)).Error())
 		}
 
-		id, err := strconv.ParseUint(sId, 10, 64)
+		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())

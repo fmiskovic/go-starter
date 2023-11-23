@@ -2,9 +2,11 @@ package repos
 
 import (
 	"context"
+	"time"
+
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
-	"time"
+	"github.com/google/uuid"
 
 	"github.com/uptrace/bun"
 )
@@ -20,7 +22,7 @@ func NewUserRepo(db *bun.DB) UserRepo {
 }
 
 // GetById returns user by specified id.
-func (repo UserRepo) GetById(ctx context.Context, id uint64) (*user.User, error) {
+func (repo UserRepo) GetById(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	var u = &user.User{}
 
 	err := repo.db.NewSelect().Model(u).Where("? = ?", bun.Ident("id"), id).Scan(ctx)
@@ -36,6 +38,7 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return NilEntityError
 	}
+
 	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
 		return err
 	}
@@ -57,7 +60,7 @@ func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 }
 
 // DeleteById remove user entity by specified id.
-func (repo UserRepo) DeleteById(ctx context.Context, id uint64) error {
+func (repo UserRepo) DeleteById(ctx context.Context, id uuid.UUID) error {
 	if _, err := repo.db.NewDelete().Model(new(user.User)).Where("id = ?", id).Exec(ctx); err != nil {
 		return err
 	}

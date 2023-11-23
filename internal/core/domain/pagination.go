@@ -25,7 +25,7 @@ type OrderOption func(*Order)
 
 // NewOrder creates new Order object.
 func NewOrder(opts ...OrderOption) *Order {
-	order := &Order{Property: "id", Direction: ASC}
+	order := &Order{Property: "created_at", Direction: DESC}
 	for _, opt := range opts {
 		opt(order)
 	}

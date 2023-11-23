@@ -1,8 +1,11 @@
 package user
 
 import (
-	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/google/uuid"
+	"log/slog"
 	"time"
+
+	"github.com/fmiskovic/go-starter/internal/core/domain"
 
 	"github.com/uptrace/bun"
 )
@@ -18,6 +21,65 @@ type User struct {
 	Location    string    `bun:"location,nullzero"`
 	Gender      Gender    `bun:"gender,nullzero"`
 	Enabled     bool      `bun:"enabled"`
+}
+
+func New(opts ...Option) *User {
+	// recover in case uuid.New() panic
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Warn("Recovered in user.New() when uuid.New() panic", r)
+		}
+	}()
+	id := uuid.New()
+	u := &User{Entity: domain.Entity{ID: id}}
+	for _, opt := range opts {
+		opt(u)
+	}
+	return u
+}
+
+type Option func(*User)
+
+func Id(id uuid.UUID) Option {
+	return func(u *User) {
+		u.ID = id
+	}
+}
+
+func Email(e string) Option {
+	return func(u *User) {
+		u.Email = e
+	}
+}
+
+func FullName(fn string) Option {
+	return func(u *User) {
+		u.FullName = fn
+	}
+}
+
+func Location(l string) Option {
+	return func(u *User) {
+		u.Location = l
+	}
+}
+
+func Enabled(e bool) Option {
+	return func(u *User) {
+		u.Enabled = e
+	}
+}
+
+func DateOfBirth(dob time.Time) Option {
+	return func(u *User) {
+		u.DateOfBirth = dob
+	}
+}
+
+func Sex(g Gender) Option {
+	return func(u *User) {
+		u.Gender = g
+	}
 }
 
 // Gender is either MALE, FEMALE or OTHER.

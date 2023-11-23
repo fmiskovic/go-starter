@@ -3,14 +3,15 @@ package api
 import (
 	"github.com/fmiskovic/go-starter/internal/core/ports"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type UserRouter struct {
-	repo ports.UserRepo[uint64]
+	repo ports.UserRepo[uuid.UUID]
 	app  *fiber.App
 }
 
-func NewUserRouter(repo ports.UserRepo[uint64], app *fiber.App) UserRouter {
+func NewUserRouter(repo ports.UserRepo[uuid.UUID], app *fiber.App) UserRouter {
 	return UserRouter{repo: repo, app: app}
 }
 

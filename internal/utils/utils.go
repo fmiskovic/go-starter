@@ -24,16 +24,16 @@ func LoadEnvVars() error {
 
 func GetEnvOrDefault(key string, def string) string {
 	env, ok := os.LookupEnv(key)
-	if ok && isNotBlank(env) {
+	if ok && IsNotBlank(env) {
 		return env
 	}
 	return def
 }
 
-func isBlank(s string) bool {
+func IsBlank(s string) bool {
 	return strings.TrimSpace(s) == ""
 }
 
-func isNotBlank(s string) bool {
-	return !isBlank(s)
+func IsNotBlank(s string) bool {
+	return !IsBlank(s)
 }

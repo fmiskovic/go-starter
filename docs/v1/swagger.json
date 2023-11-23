@@ -39,9 +39,9 @@
               "in": "query",
               "schema": {
                 "type": "string",
-                "default": "id ASC"
+                "default": "created_at DESC"
               },
-              "description": "Sorting order (email ASC or email DESC)"
+              "description": "Sorting order (e.g. created_at ASC or created_at DESC)"
             }
           ],
           "responses": {
@@ -129,8 +129,8 @@
               "in": "path",
               "required": true,
               "schema": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string",
+                "format": "uuid"
               },
               "description": "ID of the user to be retrieved"
             }
@@ -163,8 +163,8 @@
               "in": "path",
               "required": true,
               "schema": {
-                "type": "integer",
-                "format": "int64"
+                "type": "string",
+                "format": "uuid"
               },
               "description": "ID of the user to be deleted"
             }
@@ -185,6 +185,10 @@
         "UserDto": {
           "type": "object",
           "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
             "email": {
               "type": "string",
               "format": "email"
