@@ -45,8 +45,7 @@ func TestUserRepo_GetById(t *testing.T) {
 			name: "given invalid id should return error",
 			given: func(t *testing.T) (uuid.UUID, error) {
 				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
-				id, err := uuid.NewRandom()
-				return id, err
+				return uuid.New(), err
 			},
 			wantErr: errors.New("sql: no rows in result set"),
 		},
@@ -106,8 +105,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			name: "given invalid id should not return error",
 			given: func(t *testing.T) (uuid.UUID, error) {
 				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
-				id, err := uuid.NewRandom()
-				return id, err
+				return uuid.New(), err
 			},
 			verify: func(id uuid.UUID, t *testing.T) {
 				_, err := repo.GetById(ctx, id)
@@ -160,7 +158,7 @@ func TestUserRepo_Create(t *testing.T) {
 		{
 			name:    "given nil user should return error",
 			args:    args{u: nil},
-			wantErr: NilEntityError,
+			wantErr: ErrNilEntity,
 		},
 		{
 			name:    "given user with non-unique email should return error",
@@ -231,7 +229,7 @@ func TestUserRepo_Update(t *testing.T) {
 				return user.New(), nil
 			},
 			verify:  func(id uuid.UUID, t *testing.T) {},
-			wantErr: NilEntityError,
+			wantErr: ErrNilEntity,
 		},
 		{
 			name: "given user with non existing id should return error",
