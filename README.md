@@ -32,10 +32,7 @@ Since it is using postgres db, pre-condition is to have running postgres.
 If you want to run the app for the first time, follow the steps bellow, and it will bi accessible here: [http://localhost:8080](http://localhost:8080) and Swagger docs here: [http://localhost:8080/api/v1/docs](http://localhost:8080/api/v1/docs)
 
 1) Run postgres db: ```docker run --name go-db -e POSTGRES_PASSWORD=dbadmin -e POSTGRES_USER=dbadmin -e PGDATA=/var/lib/postgresql/data -e POSTGRES_DB=go-db --volume=/var/lib/postgresql/data -p 5432:5432 -d postgres```
-2) Build the app: ```make build```
-3) Init db migration: ```make db cmd=init```
-4) Migrate db tables: ```make db cmd=migrate```
-5) Run the app: ```make run```
+2) Build the app, migrate the db, and run the server: ```make all```
 
 ## Available commands and variables
 
@@ -48,6 +45,9 @@ If you want to run the app for the first time, follow the steps bellow, and it w
 ### CSS commands
 - `make cssi` - runs `npm install` and install tailwind
 - `make css` - generates css file: ./public/assets/app.css
+
+### Other available commands
+Look at [Makefile](https://github.com/fmiskovic/go-starter/blob/main/Makefile)
 
 ### Variables
 - `HTTP_LISTEN_ADDR`  - default is ***:8080***
