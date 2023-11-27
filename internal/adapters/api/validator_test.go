@@ -3,7 +3,20 @@ package api
 import (
 	"reflect"
 	"testing"
+	"time"
 )
+
+type TestData struct {
+	ID          string    `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Email       string    `validate:"required,min=3" json:"email"`
+	FullName    string    `json:"fullname"`
+	DateOfBirth time.Time `json:"dateOfBirth"`
+	Location    string    `json:"location"`
+	Gender      GenderDto `json:"gender"`
+	Enabled     bool      `json:"enabled"`
+}
 
 func TestValidator_Validate(t *testing.T) {
 	type args struct {
@@ -16,17 +29,17 @@ func TestValidator_Validate(t *testing.T) {
 	}{
 		{
 			name: "given valid data should return no errors",
-			args: args{data: NewUserDto(Email("test@fake.com"))},
+			args: args{data: TestData{Email: "test@fake.com"}},
 			want: []string{},
 		},
 		{
 			name: "given invalid email should return error",
-			args: args{data: NewUserDto(Email("t@"))},
+			args: args{data: TestData{Email: "t@"}},
 			want: []string{"[Email]: 't@' | Needs to implement 'min'"},
 		},
 		{
 			name: "given nil email should return error",
-			args: args{data: NewUserDto()},
+			args: args{data: TestData{}},
 			want: []string{"[Email]: '' | Needs to implement 'required'"},
 		},
 	}

@@ -16,6 +16,11 @@ run: # run server
 db: # db migration related commands, like init, migrate, status, rollback...
 	@./bin/app db $(cmd)
 
+run-db: # run posgres db in docker with default configs
+	@echo "starting go-db..."
+	@docker run --name go-db -e POSTGRES_PASSWORD=dbadmin -e POSTGRES_USER=dbadmin -e PGDATA=/var/lib/postgresql/data -e POSTGRES_DB=go-db --volume=/var/lib/postgresql/data -p 5432:5432 -d postgres
+	@echo "posgres go-db started."
+
 clear: # delete app build
 	@rm -rf bin
 
