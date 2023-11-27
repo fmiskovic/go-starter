@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"bytes"
@@ -25,20 +25,20 @@ func TestHandleCreate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	handler := NewHandler(repo)
 	app.Post("/user", handler.HandleCreate())
 
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *UserDto
+		reqBody  *Dto
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
 			name:     "given valid user request should return 201",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("test1@fake.com")),
+			reqBody:  NewDto(Email("test1@fake.com")),
 			wantCode: 201,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -48,7 +48,7 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
+				userDto := &Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Email, "test1@fake.com")
@@ -64,7 +64,7 @@ func TestHandleCreate(t *testing.T) {
 		{
 			name:     "given invalid user request email should return 400",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("")),
+			reqBody:  NewDto(Email("")),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
@@ -91,13 +91,13 @@ func TestHandleUpdate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	handler := NewHandler(repo)
 	app.Put("/user", handler.HandleUpdate())
 
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *UserDto
+		reqBody  *Dto
 		given    func(t *testing.T) (uuid.UUID, error)
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
@@ -105,7 +105,7 @@ func TestHandleUpdate(t *testing.T) {
 		{
 			name:     "given valid user request should return 200",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("test1@fake.com"), Location("Vienna")),
+			reqBody:  NewDto(Email("test1@fake.com"), Location("Vienna")),
 			wantCode: 200,
 			given: func(t *testing.T) (uuid.UUID, error) {
 				u := user.New(user.Email("test1@fake.com"))
@@ -120,7 +120,7 @@ func TestHandleUpdate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
+				userDto := &Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Location, "Vienna")
@@ -139,7 +139,7 @@ func TestHandleUpdate(t *testing.T) {
 		{
 			name:    "given invalid user request email should return 400",
 			route:   "/user",
-			reqBody: NewUserDto(Email("")),
+			reqBody: NewDto(Email("")),
 			given: func(t *testing.T) (uuid.UUID, error) {
 				return uuid.New(), nil
 			},
@@ -180,7 +180,7 @@ func TestHandleDeleteById(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	handler := NewHandler(repo)
 	app.Delete("/user/:id", handler.HandleDeleteById())
 
 	tests := []struct {
@@ -256,7 +256,7 @@ func TestHandleGetById(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	handler := NewHandler(repo)
 	app.Get("/user/:id", handler.HandleGetById())
 
 	tests := []struct {
@@ -281,7 +281,7 @@ func TestHandleGetById(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
+				userDto := &Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Email, "test1@fake.com")
@@ -340,7 +340,7 @@ func TestHandleGetPage(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	handler := NewHandler(repo)
 	app.Get("/user", handler.HandleGetPage())
 
 	tests := []struct {
@@ -366,7 +366,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
@@ -389,7 +389,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
@@ -412,7 +412,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(len(pageDto.Elements) == 0)

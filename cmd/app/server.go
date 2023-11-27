@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/fmiskovic/go-starter/internal/adapters/api"
+	"github.com/fmiskovic/go-starter/internal/adapters/api/user"
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
 	"github.com/fmiskovic/go-starter/internal/adapters/views"
@@ -76,7 +76,7 @@ func initApp(db *bun.DB) *fiber.App {
 	initSwaggerRouters(app)
 
 	// init user api handlers
-	api.NewUserRouter(repos.NewUserRepo(db), app).InitRouters()
+	user.NewRouter(repos.NewUserRepo(db), app).InitRouters()
 	// init static handlers
 	initStaticRouters(app)
 

@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"github.com/fmiskovic/go-starter/internal/core/ports"
@@ -6,21 +6,22 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserRouter struct {
+type Router struct {
 	repo ports.UserRepo[uuid.UUID]
 	app  *fiber.App
 }
 
-func NewUserRouter(repo ports.UserRepo[uuid.UUID], app *fiber.App) UserRouter {
-	return UserRouter{repo: repo, app: app}
+// NewRouter instantiates new user.Router
+func NewRouter(repo ports.UserRepo[uuid.UUID], app *fiber.App) Router {
+	return Router{repo: repo, app: app}
 }
 
 // InitRouters initializes user management api.
-func (r UserRouter) InitRouters() {
+func (r Router) InitRouters() {
 	api := r.app.Group("/api")
 	v1 := api.Group("/v1")
 
-	handler := NewUserHandler(r.repo)
+	handler := NewHandler(r.repo)
 
 	v1.Get("/user/:id", handler.HandleGetById())
 	v1.Get("/user", handler.HandleGetPage())

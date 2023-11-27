@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"time"
@@ -10,7 +10,7 @@ import (
 )
 
 // UserDto represents user DTO.
-type UserDto struct {
+type Dto struct {
 	ID          string    `json:"id"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
@@ -22,55 +22,55 @@ type UserDto struct {
 	Enabled     bool      `json:"enabled"`
 }
 
-// NewUserDto instantiate new user DTO.
-func NewUserDto(opts ...UserDtoOption) *UserDto {
-	r := &UserDto{}
+// NewDto instantiate new user DTO.
+func NewDto(opts ...DtoOption) *Dto {
+	r := &Dto{}
 	for _, opt := range opts {
 		opt(r)
 	}
 	return r
 }
 
-type UserDtoOption func(req *UserDto)
+type DtoOption func(req *Dto)
 
-func Id(id string) UserDtoOption {
-	return func(r *UserDto) {
+func Id(id string) DtoOption {
+	return func(r *Dto) {
 		r.ID = id
 	}
 }
 
-func Email(email string) UserDtoOption {
-	return func(r *UserDto) {
+func Email(email string) DtoOption {
+	return func(r *Dto) {
 		r.Email = email
 	}
 }
 
-func FullName(fullName string) UserDtoOption {
-	return func(r *UserDto) {
+func FullName(fullName string) DtoOption {
+	return func(r *Dto) {
 		r.FullName = fullName
 	}
 }
 
-func DateOfBirth(dateOfBirth time.Time) UserDtoOption {
-	return func(r *UserDto) {
+func DateOfBirth(dateOfBirth time.Time) DtoOption {
+	return func(r *Dto) {
 		r.DateOfBirth = dateOfBirth
 	}
 }
 
-func Location(location string) UserDtoOption {
-	return func(r *UserDto) {
+func Location(location string) DtoOption {
+	return func(r *Dto) {
 		r.Location = location
 	}
 }
 
-func Sex(g user.Gender) UserDtoOption {
-	return func(r *UserDto) {
+func Sex(g user.Gender) DtoOption {
+	return func(r *Dto) {
 		r.Gender = GenderDto(g.Stringify())
 	}
 }
 
-func Enabled(e bool) UserDtoOption {
-	return func(r *UserDto) {
+func Enabled(e bool) DtoOption {
+	return func(r *Dto) {
 		r.Enabled = e
 	}
 }
@@ -93,7 +93,7 @@ func (g GenderDto) Numberfy() user.Gender {
 }
 
 // ToUser converts UserDto into a User pointer.
-func ToUser(r *UserDto) (*user.User, error) {
+func ToUser(r *Dto) (*user.User, error) {
 	var id uuid.UUID
 	var err error
 
@@ -118,9 +118,9 @@ func ToUser(r *UserDto) (*user.User, error) {
 	), nil
 }
 
-// ToUserDto converts User into a UserDto pointer.
-func ToUserDto(u *user.User) *UserDto {
-	return NewUserDto(
+// ToDto converts User into a UserDto pointer.
+func ToDto(u *user.User) *Dto {
+	return NewDto(
 		Id(u.ID.String()),
 		Email(u.Email),
 		FullName(u.FullName),
@@ -132,12 +132,12 @@ func ToUserDto(u *user.User) *UserDto {
 }
 
 // ToPageDto converts internal Page into a DtoPage.
-func ToPageDto(page domain.Page[user.User]) domain.Page[UserDto] {
-	var dtos []UserDto
+func ToPageDto(page domain.Page[user.User]) domain.Page[Dto] {
+	var dtos []Dto
 	for _, u := range page.Elements {
-		dtos = append(dtos, *ToUserDto(&u))
+		dtos = append(dtos, *ToDto(&u))
 	}
-	return domain.Page[UserDto]{
+	return domain.Page[Dto]{
 		TotalPages:    page.TotalPages,
 		TotalElements: page.TotalElements,
 		Elements:      dtos,
