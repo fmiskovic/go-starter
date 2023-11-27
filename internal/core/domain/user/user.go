@@ -1,11 +1,13 @@
 package user
 
 import (
-	"github.com/google/uuid"
 	"log/slog"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 
 	"github.com/uptrace/bun"
 )
@@ -15,12 +17,13 @@ type User struct {
 	bun.BaseModel `bun:"table:users,alias:u"`
 
 	domain.Entity
-	Email       string    `bun:"email,notnull,unique"`
-	FullName    string    `bun:"full_name,nullzero"`
-	DateOfBirth time.Time `bun:"date_of_birth,nullzero"`
-	Location    string    `bun:"location,nullzero"`
-	Gender      Gender    `bun:"gender,nullzero"`
-	Enabled     bool      `bun:"enabled"`
+	Email       string                `bun:"email,notnull,unique"`
+	FullName    string                `bun:"full_name,nullzero"`
+	DateOfBirth time.Time             `bun:"date_of_birth,nullzero"`
+	Location    string                `bun:"location,nullzero"`
+	Gender      Gender                `bun:"gender,nullzero"`
+	Enabled     bool                  `bun:"enabled"`
+	Credentials *security.Credentials `bun:"rel:has-one,join:id=user_id"`
 }
 
 func New(opts ...Option) *User {
@@ -79,6 +82,12 @@ func DateOfBirth(dob time.Time) Option {
 func Sex(g Gender) Option {
 	return func(u *User) {
 		u.Gender = g
+	}
+}
+
+func Credentials(crd *security.Credentials) Option {
+	return func(u *User) {
+		u.Credentials = crd
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// UserRepo is implementation of generic Repo interface.
+// UserRepo is implementation of ports.UserRepo interface.
 type UserRepo struct {
 	db *bun.DB
 }
@@ -89,4 +89,21 @@ func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Pag
 		TotalElements: count,
 		Elements:      users,
 	}, err
+}
+
+func (repo UserRepo) GetUserByUsername(ctx context.Context, username string) (*user.User, error) {
+	var u = &user.User{}
+
+	err := repo.db.
+		NewSelect().
+		Model(u).
+		Join("INNER JOIN credentials AS c ON c.user_id = u.id").
+		Where("? = ?", bun.Ident("c.username"), username).
+		Scan(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }

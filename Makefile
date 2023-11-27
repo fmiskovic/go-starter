@@ -1,4 +1,5 @@
 all: # this command is like a shortcut that builds the app, runs db migration, and runs the app server
+	@$(MAKE) build
 	@$(MAKE) db cmd=init
 	@$(MAKE) db cmd=migrate
 	@$(MAKE) run
@@ -9,12 +10,10 @@ build: # build the go code
 	@echo "building app finished"
 
 run: # run server
-	@$(MAKE) build
 	@echo "starting the app..."
 	@./bin/app serve
 
 db: # db migration related commands, like init, migrate, status, rollback...
-	@$(MAKE) build
 	@./bin/app db $(cmd)
 
 clear: # delete app build
@@ -24,7 +23,6 @@ test: # run tests
 	@go test -v ./...
 
 race: # check race conditions
-	@$(MAKE) build
 	@go test -v ./... --race
 
 cover: # check test coverage

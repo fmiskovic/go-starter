@@ -4,19 +4,26 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"os"
+
+	"runtime"
+	"testing"
+	"time"
+
+	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/security"
+	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/utils"
 	"github.com/fmiskovic/go-starter/migrations"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dbfixture"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/migrate"
-	"log/slog"
-	"runtime"
-	"testing"
-	"time"
 )
 
 // SetUpDb helps to set up test DB.
@@ -45,9 +52,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				panic(err)
 			}
 
-			dbName := utils.GetEnvOrDefault("DB_NAME", "testx-db")
-			dbUser := utils.GetEnvOrDefault("DB_USER", "testx")
-			dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "testx")
+			dbName := utils.GetEnvOrDefault("DB_NAME", "test-db")
+			dbUser := utils.GetEnvOrDefault("DB_USER", "test")
+			dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "test")
 
 			dbUri := fmt.Sprintf(
 				"postgresql://%s:%s@%s/%s?sslmode=disable",
@@ -57,14 +64,24 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 				dbName,
 			)
 
+			// connect db
 			conn := runtime.NumCPU() + 1
 			bunDb, err = connectDb(dbUri, conn)
 			if err != nil {
 				t.Fatalf("db connection failed: %v", err)
 			}
 
+			// migrate db
 			if err = migrateDB(ctx, bunDb); err != nil {
 				t.Fatalf("db migration failed: %v", err)
+			}
+
+			// seed db
+			bunDb.RegisterModel((*domain.Entity)(nil), (*user.User)(nil), (*security.Credentials)(nil))
+			fixture := dbfixture.New(bunDb, dbfixture.WithTruncateTables())
+			err = fixture.Load(ctx, os.DirFS("../../../testdata"), "fixture.yml") // be carefull about this path
+			if err != nil {
+				t.Fatalf("db fixture loading failed: %v", err)
 			}
 			break
 		}
@@ -96,9 +113,9 @@ func connectDb(uri string, conn int) (*bun.DB, error) {
 }
 
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {
-	dbName := utils.GetEnvOrDefault("DB_NAME", "testx-db")
-	dbUser := utils.GetEnvOrDefault("DB_USER", "testx")
-	dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "testx")
+	dbName := utils.GetEnvOrDefault("DB_NAME", "test-db")
+	dbUser := utils.GetEnvOrDefault("DB_USER", "test")
+	dbPassword := utils.GetEnvOrDefault("DB_PASSWORD", "test")
 
 	// Define a Postgres container configuration.
 	req := testcontainers.ContainerRequest{
