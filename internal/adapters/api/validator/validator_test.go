@@ -1,22 +1,20 @@
 package validator
 
 import (
-	"github.com/fmiskovic/go-starter/internal/adapters/api/user"
 	"reflect"
 	"testing"
 	"time"
 )
 
 type TestData struct {
-	ID          string         `json:"id"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
-	Email       string         `validate:"required,min=3" json:"email"`
-	FullName    string         `json:"fullname"`
-	DateOfBirth time.Time      `json:"dateOfBirth"`
-	Location    string         `json:"location"`
-	Gender      user.GenderDto `json:"gender"`
-	Enabled     bool           `json:"enabled"`
+	ID          string    `json:"id"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	Email       string    `validate:"required,min=3" json:"email"`
+	FullName    string    `json:"fullname"`
+	DateOfBirth time.Time `json:"dateOfBirth"`
+	Location    string    `json:"location"`
+	Enabled     bool      `json:"enabled"`
 }
 
 func TestValidator_Validate(t *testing.T) {

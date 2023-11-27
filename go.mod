@@ -6,6 +6,7 @@ toolchain go1.21.3
 
 require (
 	github.com/go-playground/validator/v10 v10.16.0
+	github.com/gofiber/contrib/jwt v1.0.7
 	github.com/gofiber/contrib/swagger v1.1.0
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/gofiber/template/django/v3 v3.1.7
@@ -46,7 +47,6 @@ require (
 	github.com/go-openapi/validate v0.22.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/gofiber/contrib/jwt v1.0.7 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
