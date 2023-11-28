@@ -1,11 +1,12 @@
 package user
 
 import (
-	error2 "github.com/fmiskovic/go-starter/internal/adapters/api/error"
-	"github.com/fmiskovic/go-starter/internal/adapters/api/validator"
 	"strconv"
 	"strings"
 	"time"
+
+	apiErr "github.com/fmiskovic/go-starter/internal/adapters/api/error"
+	"github.com/fmiskovic/go-starter/internal/adapters/api/validator"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
@@ -43,14 +44,14 @@ func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
 		u, err := ToUser(req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrParseReqBody)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
 		}
 		u.CreatedAt = time.Now()
 		u.UpdatedAt = time.Now()
 
 		if err := uh.repo.Create(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrEntityCreate)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityCreate)).Error())
 		}
 
 		res := ToDto(u)
@@ -76,13 +77,13 @@ func (uh Handler) HandleUpdate() func(c *fiber.Ctx) error {
 		u, err := ToUser(req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrParseReqBody)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
 		}
 		u.UpdatedAt = time.Now()
 
 		if err := uh.repo.Update(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrEntityUpdate)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityUpdate)).Error())
 		}
 
 		return toJson(c, ToDto(u))
@@ -96,19 +97,19 @@ func (uh Handler) HandleGetById() func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithAppErr(error2.ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		u, err := uh.repo.GetById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusNotFound,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrGetById)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrGetById)).Error())
 		}
 
 		return toJson(c, ToDto(u))
@@ -121,19 +122,19 @@ func (uh Handler) HandleDeleteById() func(c *fiber.Ctx) error {
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithAppErr(error2.ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		err = uh.repo.DeleteById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrDeleteById)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrDeleteById)).Error())
 		}
 
 		c.Status(fiber.StatusNoContent)
@@ -149,13 +150,13 @@ func (uh Handler) HandleGetPage() func(c *fiber.Ctx) error {
 		size, err := strconv.Atoi(c.Query("size", "10"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrInvalidPageSize)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidPageSize)).Error())
 		}
 
 		offset, err := strconv.Atoi(c.Query("offset", "0"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrInvalidPageOffset)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidPageOffset)).Error())
 		}
 
 		sort := resolveSort(c)
@@ -168,7 +169,7 @@ func (uh Handler) HandleGetPage() func(c *fiber.Ctx) error {
 		page, err := uh.repo.GetPage(c.Context(), pageReq)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrGetPage)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrGetPage)).Error())
 		}
 		return toJson(c, ToPageDto(page))
 	}
@@ -178,7 +179,7 @@ func parseRequestBody(c *fiber.Ctx) (*Dto, error) {
 	var r = new(Dto)
 	if err := c.BodyParser(r); err != nil {
 		return nil, fiber.NewError(fiber.StatusBadRequest,
-			error2.New(error2.WithSvcErr(err), error2.WithAppErr(error2.ErrParseReqBody)).Error())
+			apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
 	}
 	return r, nil
 }

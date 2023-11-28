@@ -42,3 +42,16 @@
       created_at: '{{ now }}'
       updated_at: '{{ now }}'
       user_id: 220cea28-b2b0-4051-9eb6-9a99e451af03
+
+- model: Role
+  rows:
+    - id: 200cea28-b2b0-4051-9eb6-9a99e451af01
+      name: ROLE_ADMIN
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01
+    - id: 200cea28-b2b0-4051-9eb6-9a99e451af02
+      name: ROLE_USER
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01

@@ -47,7 +47,7 @@ func Password(p string) CredentialsOption {
 	}
 }
 
-func UserID(uId uuid.UUID) CredentialsOption {
+func CredentialsUserID(uId uuid.UUID) CredentialsOption {
 	return func(crd *Credentials) {
 		crd.UserID = uId
 	}

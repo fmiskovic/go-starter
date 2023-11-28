@@ -6,8 +6,12 @@ import (
 	jwtware "github.com/gofiber/contrib/jwt"
 )
 
-func AuthMiddleware(app *fiber.App) {
-	app.Use(jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte("secret")},
-	}))
+// Middleware is auth middleware that should be used in protected endpoints.
+func Middleware(app *fiber.App, secret string) func(c *fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		app.Use(jwtware.New(jwtware.Config{
+			SigningKey: jwtware.SigningKey{Key: []byte(secret)},
+		}))
+		return nil
+	}
 }

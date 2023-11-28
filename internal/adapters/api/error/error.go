@@ -12,6 +12,7 @@ var (
 	ErrInvalidPageSize   = errors.New("invalid page size number")
 	ErrInvalidPageOffset = errors.New("invalid page offset number")
 	ErrGetPage           = errors.New("failed to get entities page")
+	ErrInvalidAuthReq    = errors.New("invalid username or password")
 )
 
 // ApiError represents a custom error struct that contains optionally service and application error.

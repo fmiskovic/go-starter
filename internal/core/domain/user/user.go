@@ -24,6 +24,7 @@ type User struct {
 	Gender      Gender                `bun:"gender,nullzero"`
 	Enabled     bool                  `bun:"enabled"`
 	Credentials *security.Credentials `bun:"rel:has-one,join:id=user_id"`
+	Roles       []*security.Role      `bun:"rel:has-many,join:id=user_id"`
 }
 
 func New(opts ...Option) *User {
@@ -88,6 +89,12 @@ func Sex(g Gender) Option {
 func Credentials(crd *security.Credentials) Option {
 	return func(u *User) {
 		u.Credentials = crd
+	}
+}
+
+func Roles(roles []*security.Role) Option {
+	return func(u *User) {
+		u.Roles = roles
 	}
 }
 

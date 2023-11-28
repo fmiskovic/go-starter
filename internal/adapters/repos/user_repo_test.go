@@ -300,7 +300,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 	}
 }
 
-func TestUserRepo_GetUserByUsername(t *testing.T) {
+func TestUserRepo_GetByUsername(t *testing.T) {
 	// skip in short mode
 	if testing.Short() {
 		return
@@ -342,13 +342,16 @@ func TestUserRepo_GetUserByUsername(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := repo.GetUserByUsername(ctx, tt.args.username)
+			got, err := repo.GetByUsername(ctx, tt.args.username)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("UserRepo.GetUserByUsername() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UserRepo.GetByUsername() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != nil && got.Email != tt.wantEmail {
-				t.Errorf("UserRepo.GetUserByUsername() = %v, want %v", got, tt.wantEmail)
+				t.Errorf("UserRepo.GetByUsername() = %v, want %v", got, tt.wantEmail)
+			}
+			if got != nil && got.Credentials != nil && got.Credentials.Username != tt.args.username {
+				t.Errorf("UserRepo.GetByUsername() = got username %v, want username %v", got.Credentials.Username, tt.args.username)
 			}
 		})
 	}

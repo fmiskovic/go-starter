@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/utils"
 	"log/slog"
 	"runtime"
 	"strconv"
+	"time"
+
+	"github.com/fmiskovic/go-starter/internal/utils"
 )
 
 var defaultConfig ServerConfig
@@ -16,6 +18,15 @@ type ServerConfig struct {
 	DbConnString string
 	MaxOpenConn  int
 	MaxIdleConn  int
+	AuthConfig   AuthConfig
+}
+
+// AuthConfig holds auth related configuration
+type AuthConfig struct {
+	TokenExp time.Time // Token expiration time in hours
+	Secret   string    // Signing token secret
+	Scopes   []string  // List of scopes required to access endpoint (default: none required)
+	Enabled  bool      // Auth enable/disable flag - default disabled
 }
 
 func init() {
@@ -23,6 +34,10 @@ func init() {
 		slog.Warn("unable to locate .env file, default environment values will be used")
 	}
 
+	defaultConfig = initDefaultServerConfig()
+}
+
+func initDefaultServerConfig() ServerConfig {
 	var (
 		user   = utils.GetEnvOrDefault("DB_USER", "dbadmin")
 		pass   = utils.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
@@ -48,11 +63,28 @@ func init() {
 		maxIdleConn = numCpu
 	}
 
-	defaultConfig = ServerConfig{
+	slog.Info("default server config is initialized")
+
+	return ServerConfig{
 		ListenAddr:   listenAddr,
 		DbConnString: conn,
 		MaxOpenConn:  maxOpenConn,
 		MaxIdleConn:  maxIdleConn,
+		AuthConfig:   initDefaultAuthConfig(),
 	}
-	slog.Info("default server config is initialized")
+}
+
+func initDefaultAuthConfig() AuthConfig {
+	enabled, err := strconv.ParseBool(utils.GetEnvOrDefault("AUTH_ENABLED", "false"))
+	if err != nil {
+		slog.Warn("error parsing AUTH_ENABLED variable, auth will not be initialized", "error", err.Error())
+	}
+
+	if !enabled {
+		slog.Info("auth is disabled")
+		return AuthConfig{Enabled: false}
+	}
+
+	slog.Info("default auth config is initialized")
+	return AuthConfig{}
 }

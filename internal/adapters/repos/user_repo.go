@@ -91,14 +91,15 @@ func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Pag
 	}, err
 }
 
-func (repo UserRepo) GetUserByUsername(ctx context.Context, username string) (*user.User, error) {
-	var u = &user.User{}
+func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.User, error) {
+	var u = new(user.User)
 
-	err := repo.db.
-		NewSelect().
+	err := repo.db.NewSelect().
 		Model(u).
-		Join("INNER JOIN credentials AS c ON c.user_id = u.id").
-		Where("? = ?", bun.Ident("c.username"), username).
+		Relation("Roles").
+		Relation("Credentials", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("? = ?", bun.Ident("username"), username)
+		}).
 		Scan(ctx)
 
 	if err != nil {
