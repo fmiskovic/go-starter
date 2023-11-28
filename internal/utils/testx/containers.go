@@ -79,7 +79,7 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 			// seed db
 			bunDb.RegisterModel((*domain.Entity)(nil), (*user.User)(nil), (*security.Role)(nil), (*security.Credentials)(nil))
 			fixture := dbfixture.New(bunDb, dbfixture.WithTruncateTables())
-			err = fixture.Load(ctx, os.DirFS("../../../testdata"), "fixture.yml") // be carefull about this path
+			err = fixture.Load(ctx, os.DirFS("testdata"), "fixture.yml")
 			if err != nil {
 				t.Fatalf("db fixture loading failed: %v", err)
 			}

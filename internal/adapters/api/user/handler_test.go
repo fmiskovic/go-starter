@@ -346,17 +346,12 @@ func TestHandleGetPage(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		given    func(t *testing.T) error
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:  "given empty pageable should return 200",
-			route: "/user",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test1@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given empty pageable should return 200",
+			route:    "/user",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -370,16 +365,12 @@ func TestHandleGetPage(t *testing.T) {
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
-				assert.Equal(pageDto.Elements[0].Email, "test1@fake.com")
+				assert.Equal(pageDto.Elements[0].Email, "john@smith.com")
 			},
 		},
 		{
-			name:  "given pageable should return 200",
-			route: "/user?size=10&offset=0&sort=email%20ASC",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test2@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given pageable should return 200",
+			route:    "/user?size=10&offset=0&sort=email%20ASC",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -393,16 +384,12 @@ func TestHandleGetPage(t *testing.T) {
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
-				assert.Equal(pageDto.Elements[1].Email, "test2@fake.com")
+				assert.Equal(pageDto.Elements[1].Email, "john@doe.com")
 			},
 		},
 		{
-			name:  "given pageable with offset 5 should return 200 and no elements",
-			route: "/user?offset=5&sort=email%20ASC",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test3@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given pageable with offset 5 should return 200 and no elements",
+			route:    "/user?offset=5&sort=email%20ASC",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -422,11 +409,7 @@ func TestHandleGetPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			err := tt.given(t)
-			assert.NoErr(err)
-
 			req := httptest.NewRequest("GET", tt.route, nil)
-
 			// when
 			res, err := app.Test(req, 1000)
 			// then
