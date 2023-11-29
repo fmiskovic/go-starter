@@ -5,14 +5,10 @@ type Request struct {
 	Password string `validate:"required,min=8,max=72" json:"password"`
 }
 
-func NewRequest(username string, password string) Request {
-	return Request{Username: username, Password: password}
-}
-
 type Response struct {
 	Token string `json:"token"`
 }
 
-func NewResponse(token string) Response {
+func newResponse(token string) Response {
 	return Response{Token: token}
 }

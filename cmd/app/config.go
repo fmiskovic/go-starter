@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fmiskovic/go-starter/internal/core/auth"
 	"github.com/fmiskovic/go-starter/internal/utils"
 )
 
@@ -18,15 +19,7 @@ type ServerConfig struct {
 	DbConnString string
 	MaxOpenConn  int
 	MaxIdleConn  int
-	AuthConfig   AuthConfig
-}
-
-// AuthConfig holds auth related configuration
-type AuthConfig struct {
-	TokenExp time.Time // Token expiration time in hours
-	Secret   string    // Signing token secret
-	Scopes   []string  // List of scopes required to access endpoint (default: none required)
-	Enabled  bool      // Auth enable/disable flag - default disabled
+	AuthConfig   auth.Config
 }
 
 func init() {
@@ -74,17 +67,16 @@ func initDefaultServerConfig() ServerConfig {
 	}
 }
 
-func initDefaultAuthConfig() AuthConfig {
-	enabled, err := strconv.ParseBool(utils.GetEnvOrDefault("AUTH_ENABLED", "false"))
+func initDefaultAuthConfig() auth.Config {
+	// parsing DB_MAX_IDLE_CONN variable
+	expTime, err := strconv.Atoi(utils.GetEnvOrDefault("AUTH_JWT_EXP_TIME", "24"))
 	if err != nil {
-		slog.Warn("error parsing AUTH_ENABLED variable, auth will not be initialized", "error", err.Error())
+		slog.Warn("error parsing AUTH_JWT_EXP_TIME variable, using default", "error", err.Error())
+		expTime = 24
 	}
 
-	if !enabled {
-		slog.Info("auth is disabled")
-		return AuthConfig{Enabled: false}
-	}
+	secret := utils.GetEnvOrDefault("AUTH_JWT_SECRET", "secret")
 
 	slog.Info("default auth config is initialized")
-	return AuthConfig{}
+	return *auth.NewConfig(auth.TokenExp(time.Duration(expTime)), auth.Secret(secret))
 }
