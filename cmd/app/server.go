@@ -9,7 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
-	"github.com/fmiskovic/go-starter/internal/adapters/views"
+	"github.com/fmiskovic/go-starter/internal/adapters/handlers"
+
 	"github.com/fmiskovic/go-starter/internal/core/configs"
 
 	"github.com/gofiber/template/django/v3"
@@ -67,19 +68,20 @@ func initDb(config ServerConfig) (*bun.DB, error) {
 
 func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
-		ErrorHandler:          views.ErrorHandler,
+		ErrorHandler:          handlers.ErrorHandler,
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
 	})
 
-	// init swagger
-	initSwaggerRouters(app)
+	router := newRouter(db, app, authConfig)
 
+	// init swagger
+	router.initSwaggerRouters()
 	// init user api handlers
-	NewUserRouter(db, app, authConfig).InitRouters()
+	router.initUserRouters()
 	// init static handlers
-	initStaticRouters(app)
+	router.initStaticRouters()
 
 	app.Use(recover.New())
 	return app

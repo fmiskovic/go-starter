@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/fmiskovic/go-starter/internal/adapters/handlers"
 	"github.com/fmiskovic/go-starter/internal/adapters/handlers/user"
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
-	"github.com/fmiskovic/go-starter/internal/adapters/views"
 	"github.com/fmiskovic/go-starter/internal/core/configs"
 	"github.com/fmiskovic/go-starter/internal/core/services"
 	jwtware "github.com/gofiber/contrib/jwt"
@@ -12,21 +12,21 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type UserRouter struct {
+type Router struct {
 	service    services.UserService
 	app        *fiber.App
 	authConfig configs.AuthConfig
 }
 
 // NewRouter instantiates new user.Router
-func NewUserRouter(db *bun.DB, app *fiber.App, authConfig configs.AuthConfig) UserRouter {
+func newRouter(db *bun.DB, app *fiber.App, authConfig configs.AuthConfig) Router {
 	repo := repos.NewUserRepo(db)
 	svc := services.NewUserService(repo, authConfig)
-	return UserRouter{service: svc, app: app, authConfig: authConfig}
+	return Router{service: svc, app: app, authConfig: authConfig}
 }
 
-// InitRouters initializes user management api.
-func (r UserRouter) InitRouters() {
+// initUserRouters initializes user management api.
+func (r Router) initUserRouters() {
 	api := r.app.Group("/api")
 	v1 := api.Group("/v1")
 
@@ -39,22 +39,22 @@ func (r UserRouter) InitRouters() {
 	v1.Put("/user", handler.HandleUpdate())
 }
 
-// InitStaticRoutes initializes static view handlers to serve the UI.
-func initStaticRouters(app *fiber.App) {
-	app.Static("/public", "./public")
+// initStaticRoutes initializes static view handlers to serve the UI.
+func (r Router) initStaticRouters() {
+	r.app.Static("/public", "./public")
 
-	app.Use(views.FlashMiddleware)
+	r.app.Use(handlers.FlashMiddleware)
 
-	app.Get("/", views.HandleHome)
-	app.Get("/about", views.HandleAbout)
-	app.Get("/flash", views.HandleFlash)
+	r.app.Get("/", handlers.HandleHome)
+	r.app.Get("/about", handlers.HandleAbout)
+	r.app.Get("/flash", handlers.HandleFlash)
 
-	app.Use(views.NotFoundMiddleware)
+	r.app.Use(handlers.NotFoundMiddleware)
 }
 
-// InitSwaggerRoutes initializes Swagger UI.
-func initSwaggerRouters(app *fiber.App) {
-	app.Use(swagger.New(swagger.Config{
+// initSwaggerRoutes initializes Swagger UI.
+func (r Router) initSwaggerRouters() {
+	r.app.Use(swagger.New(swagger.Config{
 		BasePath: "/api/v1/",
 		FilePath: "./docs/v1/swagger.json",
 		Path:     "docs",

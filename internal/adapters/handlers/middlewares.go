@@ -1,9 +1,10 @@
-package views
+package handlers
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/sujit-baniya/flash"
-	"net/http"
 )
 
 func NotFoundMiddleware(c *fiber.Ctx) error {
