@@ -43,14 +43,8 @@ func Id(id uuid.UUID) RoleOption {
 	}
 }
 
-func Name(name string) RoleOption {
+func RoleName(name string) RoleOption {
 	return func(r *Role) {
 		r.Name = name
-	}
-}
-
-func RoleUserId(userId uuid.UUID) RoleOption {
-	return func(r *Role) {
-		r.UserID = userId
 	}
 }

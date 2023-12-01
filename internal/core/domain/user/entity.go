@@ -88,12 +88,16 @@ func Sex(g Gender) Option {
 
 func Credentials(crd *security.Credentials) Option {
 	return func(u *User) {
+		crd.UserID = u.ID
 		u.Credentials = crd
 	}
 }
 
-func Roles(roles []*security.Role) Option {
+func Roles(roles ...*security.Role) Option {
 	return func(u *User) {
+		for _, role := range roles {
+			role.UserID = u.ID
+		}
 		u.Roles = roles
 	}
 }

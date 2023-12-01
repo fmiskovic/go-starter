@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"github.com/google/uuid"
@@ -149,6 +150,23 @@ func TestUserRepo_Create(t *testing.T) {
 			name:    "given user with non-unique email should return error",
 			args:    args{u: user.New(user.Email("test1@fake.com"))},
 			wantErr: errors.New("duplicate key value violates unique constraint \"users_email_key\""),
+		},
+		{
+			name: "given valid user with credentials and roles should not return error",
+			args: args{u: user.New(
+				user.Email("test2@fake.com"),
+				user.Credentials(security.NewCredentials(
+					security.Username("test2"),
+					security.Password("test2"),
+				)),
+				user.Roles(
+					security.NewRole(
+						security.RoleName(security.ROLE_USER),
+					),
+				),
+			),
+			},
+			wantErr: nil,
 		},
 	}
 

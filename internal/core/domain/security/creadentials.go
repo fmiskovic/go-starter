@@ -46,9 +46,3 @@ func Password(p string) CredentialsOption {
 		crd.Password = p
 	}
 }
-
-func CredentialsUserID(uId uuid.UUID) CredentialsOption {
-	return func(crd *Credentials) {
-		crd.UserID = uId
-	}
-}

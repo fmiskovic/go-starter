@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
@@ -39,11 +40,27 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 		return ErrNilEntity
 	}
 
-	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
-		return err
-	}
+	err := repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		_, err := tx.NewInsert().Model(u).Exec(ctx)
+		if err != nil {
+			return err
+		}
+		if u.Credentials != nil {
+			_, err = tx.NewInsert().Model(u.Credentials).Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		if u.Roles != nil {
+			_, err = tx.NewInsert().Model(&u.Roles).Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
-	return nil
+	return err
 }
 
 // Update existing persisted user entity.

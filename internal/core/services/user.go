@@ -150,10 +150,8 @@ func (s UserService) AddRoles(ctx context.Context, roles []string, id uuid.UUID)
 
 	// TODO: implement
 	for _, name := range roles {
-		role := security.NewRole(
-			security.Name(name),
-			security.RoleUserId(u.ID),
-		)
+		role := security.NewRole(security.RoleName(name))
+		role.UserID = u.ID
 		u.Roles = append(u.Roles, role)
 	}
 
@@ -173,25 +171,22 @@ func (s UserService) EnableDisable(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s UserService) createUser(ctx context.Context, req user.CreateRequest) (*user.User, error) {
+	crd := security.NewCredentials(
+		security.Username(req.Username),
+		security.Password(req.Password),
+	)
+	role := security.NewRole(
+		security.RoleName(security.ROLE_USER),
+	)
 	u := user.New(
 		user.Email(req.Email),
 		user.DateOfBirth(req.DateOfBirth),
 		user.FullName(req.FullName),
 		user.Location(req.Location),
 		user.Sex(req.Gender.Numberfy()),
+		user.Credentials(crd),
+		user.Roles(role),
 	)
-	crd := security.NewCredentials(
-		security.Username(req.Username),
-		security.Password(req.Password),
-		security.CredentialsUserID(u.ID),
-	)
-	u.Credentials = crd
-
-	role := security.NewRole(
-		security.Name(security.ROLE_USER),
-		security.RoleUserId(u.ID),
-	)
-	u.Roles = append(u.Roles, role)
 
 	if err := s.repo.Create(ctx, u); err != nil {
 		return nil, err
