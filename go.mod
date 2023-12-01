@@ -10,6 +10,7 @@ require (
 	github.com/gofiber/contrib/swagger v1.1.0
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/gofiber/template/django/v3 v3.1.7
+	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/joho/godotenv v1.5.1
 	github.com/matryer/is v1.4.1
 	github.com/testcontainers/testcontainers-go v0.26.0
@@ -48,7 +49,6 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.1.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
@@ -111,7 +111,7 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.16.0
 	golang.org/x/sys v0.15.0 // indirect
 	mellium.im/sasl v0.3.1 // indirect
 )

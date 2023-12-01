@@ -78,7 +78,7 @@ func initDefaultAuthConfig() configs.AuthConfig {
 	secret := utils.GetEnvOrDefault("AUTH_JWT_SECRET", "secret")
 
 	slog.Info("default auth config is initialized")
-	return *&configs.AuthConfig{
+	return configs.AuthConfig{
 		TokenExp: time.Duration(expTime),
 		Secret:   secret,
 	}

@@ -51,7 +51,7 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				createRes := user.CreateResponse{}
+				createRes := &user.CreateResponse{}
 				err := json.NewDecoder(resBody).Decode(createRes)
 				assert.NoErr(err)
 				assert.Equal(createRes.Email, "test1@fake.com")
@@ -118,7 +118,7 @@ func TestHandleUpdate(t *testing.T) {
 					}
 				}(resBody)
 
-				updateRes := user.UpdateResponse{}
+				updateRes := &user.UpdateResponse{}
 				err := json.NewDecoder(resBody).Decode(updateRes)
 				assert.NoErr(err)
 				assert.Equal(updateRes.Location, "Vienna")
@@ -247,7 +247,7 @@ func TestHandleGetById(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := user.Dto{}
+				userDto := &user.Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
 				assert.Equal(userDto.Email, "test1@fake.com")
