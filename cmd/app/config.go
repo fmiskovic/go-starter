@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fmiskovic/go-starter/internal/core/auth"
+	"github.com/fmiskovic/go-starter/internal/core/configs"
 	"github.com/fmiskovic/go-starter/internal/utils"
 )
 
@@ -19,7 +19,7 @@ type ServerConfig struct {
 	DbConnString string
 	MaxOpenConn  int
 	MaxIdleConn  int
-	AuthConfig   auth.Config
+	AuthConfig   configs.AuthConfig
 }
 
 func init() {
@@ -67,7 +67,7 @@ func initDefaultServerConfig() ServerConfig {
 	}
 }
 
-func initDefaultAuthConfig() auth.Config {
+func initDefaultAuthConfig() configs.AuthConfig {
 	// parsing DB_MAX_IDLE_CONN variable
 	expTime, err := strconv.Atoi(utils.GetEnvOrDefault("AUTH_JWT_EXP_TIME", "24"))
 	if err != nil {
@@ -78,5 +78,8 @@ func initDefaultAuthConfig() auth.Config {
 	secret := utils.GetEnvOrDefault("AUTH_JWT_SECRET", "secret")
 
 	slog.Info("default auth config is initialized")
-	return *auth.NewConfig(auth.TokenExp(time.Duration(expTime)), auth.Secret(secret))
+	return *&configs.AuthConfig{
+		TokenExp: time.Duration(expTime),
+		Secret:   secret,
+	}
 }

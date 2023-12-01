@@ -2,16 +2,17 @@ package main
 
 import (
 	"errors"
-	"github.com/fmiskovic/go-starter/internal/adapters/api/user"
-	"github.com/fmiskovic/go-starter/internal/adapters/db"
-	"github.com/fmiskovic/go-starter/internal/adapters/repos"
-	"github.com/fmiskovic/go-starter/internal/adapters/views"
-	"github.com/gofiber/template/django/v3"
 	"html/template"
 	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
+
+	"github.com/fmiskovic/go-starter/internal/adapters/db"
+	"github.com/fmiskovic/go-starter/internal/adapters/views"
+	"github.com/fmiskovic/go-starter/internal/core/configs"
+
+	"github.com/gofiber/template/django/v3"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -31,7 +32,7 @@ func newServer(config ServerConfig) Server {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app := initApp(bunDb)
+	app := initApp(bunDb, configs.AuthConfig{})
 	return Server{
 		Config: config,
 		Db:     bunDb,
@@ -64,7 +65,7 @@ func initDb(config ServerConfig) (*bun.DB, error) {
 	}.OpenDb()
 }
 
-func initApp(db *bun.DB) *fiber.App {
+func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler:          views.ErrorHandler,
 		DisableStartupMessage: true,
@@ -76,7 +77,7 @@ func initApp(db *bun.DB) *fiber.App {
 	initSwaggerRouters(app)
 
 	// init user api handlers
-	user.NewRouter(repos.NewUserRepo(db), app).InitRouters()
+	NewUserRouter(db, app, authConfig).InitRouters()
 	// init static handlers
 	initStaticRouters(app)
 

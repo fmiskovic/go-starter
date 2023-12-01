@@ -15,6 +15,11 @@
         "get": {
           "tags": ["User"],
           "summary": "Get a page of users",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
           "parameters": [
             {
               "name": "size",
@@ -63,6 +68,11 @@
         "post": {
           "tags": ["User"],
           "summary": "Create new user",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
           "requestBody": {
             "required": true,
             "content": {
@@ -92,6 +102,11 @@
         "put": {
           "tags": ["User"],
           "summary": "Update an existing user",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
           "requestBody": {
             "required": true,
             "content": {
@@ -123,6 +138,11 @@
         "get": {
           "tags": ["User"],
           "summary": "Get user by ID",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
           "parameters": [
             {
               "name": "id",
@@ -157,6 +177,11 @@
         "delete": {
           "tags": ["User"],
           "summary": "Delete user by ID",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
           "parameters": [
             {
               "name": "id",
@@ -181,6 +206,13 @@
       }
     },
     "components": {
+      "securitySchemes": {
+        "JWTAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      },
       "schemas": {
         "UserDto": {
           "type": "object",
