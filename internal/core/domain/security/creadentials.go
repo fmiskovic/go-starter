@@ -17,7 +17,7 @@ type Credentials struct {
 	UserID   uuid.UUID `bun:"user_id,notnull,unique"`
 }
 
-func NewCredentials(opts ...CredentialsOption) *Credentials {
+func NewCredentials(username, password string) *Credentials {
 	// recover in case uuid.New() panic
 	defer func() {
 		if r := recover(); r != nil {
@@ -25,24 +25,5 @@ func NewCredentials(opts ...CredentialsOption) *Credentials {
 		}
 	}()
 
-	crd := &Credentials{Entity: domain.Entity{ID: uuid.New()}}
-
-	for _, opt := range opts {
-		opt(crd)
-	}
-	return crd
-}
-
-type CredentialsOption func(crd *Credentials)
-
-func Username(u string) CredentialsOption {
-	return func(crd *Credentials) {
-		crd.Username = u
-	}
-}
-
-func Password(p string) CredentialsOption {
-	return func(crd *Credentials) {
-		crd.Password = p
-	}
+	return &Credentials{Entity: domain.Entity{ID: uuid.New()}, Username: username, Password: password}
 }

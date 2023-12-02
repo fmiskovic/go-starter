@@ -155,15 +155,8 @@ func TestUserRepo_Create(t *testing.T) {
 			name: "given valid user with credentials and roles should not return error",
 			args: args{u: user.New(
 				user.Email("test2@fake.com"),
-				user.Credentials(security.NewCredentials(
-					security.Username("test2"),
-					security.Password("test2"),
-				)),
-				user.Roles(
-					security.NewRole(
-						security.RoleName(security.ROLE_USER),
-					),
-				),
+				user.Credentials(security.NewCredentials("test2", "test2")),
+				user.Roles(security.NewRole(security.ROLE_USER)),
 			),
 			},
 			wantErr: nil,

@@ -150,7 +150,7 @@ func (s UserService) AddRoles(ctx context.Context, roles []string, id uuid.UUID)
 
 	// TODO: implement
 	for _, name := range roles {
-		role := security.NewRole(security.RoleName(name))
+		role := security.NewRole(name)
 		role.UserID = u.ID
 		u.Roles = append(u.Roles, role)
 	}
@@ -171,13 +171,8 @@ func (s UserService) EnableDisable(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s UserService) createUser(ctx context.Context, req user.CreateRequest) (*user.User, error) {
-	crd := security.NewCredentials(
-		security.Username(req.Username),
-		security.Password(req.Password),
-	)
-	role := security.NewRole(
-		security.RoleName(security.ROLE_USER),
-	)
+	crd := security.NewCredentials(req.Username, req.Password)
+	role := security.NewRole(security.ROLE_USER)
 	u := user.New(
 		user.Email(req.Email),
 		user.DateOfBirth(req.DateOfBirth),

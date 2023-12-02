@@ -40,7 +40,7 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 		return ErrNilEntity
 	}
 
-	err := repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		_, err := tx.NewInsert().Model(u).Exec(ctx)
 		if err != nil {
 			return err
@@ -59,8 +59,6 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 		}
 		return nil
 	})
-
-	return err
 }
 
 // Update existing persisted user entity.
