@@ -31,7 +31,7 @@ func NewHandler(service ports.UserService[uuid.UUID]) Handler {
 func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		// parse request body
-		var req = user.SignInRequest{}
+		var req = new(user.SignInRequest)
 		if err := c.BodyParser(req); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
@@ -43,7 +43,7 @@ func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
 		}
 
 		// call core service
-		res, err := h.service.SingIn(c.Context(), req)
+		res, err := h.service.SingIn(c.Context(), *req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
@@ -58,7 +58,7 @@ func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
 func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		// parse request body
-		var req = user.CreateRequest{}
+		var req = new(user.CreateRequest)
 		if err := c.BodyParser(req); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
@@ -70,7 +70,7 @@ func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 		}
 
 		// call core service
-		res, err := h.service.SingUp(c.Context(), req)
+		res, err := h.service.SingUp(c.Context(), *req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
@@ -86,7 +86,7 @@ func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		// parse request body
-		req := user.CreateRequest{}
+		req := new(user.CreateRequest)
 		if err := c.BodyParser(req); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
@@ -98,7 +98,7 @@ func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
 		}
 
 		// call core service
-		res, err := uh.service.Create(c.Context(), req)
+		res, err := uh.service.Create(c.Context(), *req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityCreate)).Error())
@@ -115,7 +115,7 @@ func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
 func (uh Handler) HandleUpdate() func(c *fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		// parse request body
-		req := user.UpdateRequest{}
+		req := new(user.UpdateRequest)
 		if err := c.BodyParser(req); err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
@@ -127,9 +127,9 @@ func (uh Handler) HandleUpdate() func(c *fiber.Ctx) error {
 		}
 
 		// call core service
-		res, err := uh.service.Update(c.Context(), req)
+		res, err := uh.service.Update(c.Context(), *req)
 		if err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError,
+			return fiber.NewError(fiber.StatusUnprocessableEntity,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityUpdate)).Error())
 		}
 

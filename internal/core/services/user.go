@@ -62,6 +62,7 @@ func (s UserService) SingIn(ctx context.Context, req user.SignInRequest) (*user.
 
 // ConfirmEmail enables user when user confirs it's email address.
 func (s UserService) ConfirmEmail(ctx context.Context, req user.ConfirmEmailRequest) error {
+	// TODO: implement
 	return nil
 }
 

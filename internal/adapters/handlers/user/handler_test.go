@@ -22,7 +22,7 @@ import (
 )
 
 func TestHandleCreate(t *testing.T) {
-	assert := is.NewRelaxed(t)
+	assert := is.New(t)
 
 	bunDb, app := testx.SetUpServer(t)
 
@@ -34,14 +34,14 @@ func TestHandleCreate(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  interface{}
+		reqBody  []byte
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:     "given valid user request should return 201",
+			name:     "given valid create request should return 201",
 			route:    "/user",
-			reqBody:  user.Request{Email: "test1@fake.com"},
+			reqBody:  []byte("{\"username\":\"test1\",\"password\":\"Password1234!\",\"email\":\"test1@fake.com\"}"),
 			wantCode: 201,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -58,26 +58,23 @@ func TestHandleCreate(t *testing.T) {
 			},
 		},
 		{
-			name:     "given zero user request should return 400",
+			name:     "given empty create request should return 400",
 			route:    "/user",
-			reqBody:  user.Request{},
+			reqBody:  []byte(""),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 		{
-			name:     "given invalid user request email should return 400",
+			name:     "given invalid email should return 400",
 			route:    "/user",
-			reqBody:  user.Request{Email: ""},
+			reqBody:  []byte("{\"username\":\"Password1234!\",\"password\":\"test1\",\"email\":\"\"}"),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reqJson, err := json.Marshal(tt.reqBody)
-			assert.NoErr(err)
-
-			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(reqJson))
+			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
 			res, err := app.Test(req, 1000)
@@ -89,7 +86,7 @@ func TestHandleCreate(t *testing.T) {
 }
 
 func TestHandleUpdate(t *testing.T) {
-	assert := is.NewRelaxed(t)
+	assert := is.New(t)
 
 	bunDb, app := testx.SetUpServer(t)
 
@@ -101,14 +98,14 @@ func TestHandleUpdate(t *testing.T) {
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  interface{}
+		reqBody  []byte
 		verify   func(t *testing.T, res *http.Response)
 		wantCode int
 	}{
 		{
-			name:     "given valid user request should return 200",
+			name:     "given valid update request should return 200",
 			route:    "/user",
-			reqBody:  user.Request{Email: "test1@fake.com", Location: "Vienna"},
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"test1@fake.com\", \"location\":\"Vienna\"}"),
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -125,27 +122,31 @@ func TestHandleUpdate(t *testing.T) {
 			},
 		},
 		{
-			name:     "given zero user request should return 400",
+			name:     "given empty update request should return 400",
 			route:    "/user",
-			reqBody:  user.Request{},
+			reqBody:  []byte("{}"),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 		{
-			name:     "given invalid user request email should return 400",
+			name:     "given invalid email should return 400",
 			route:    "/user",
-			reqBody:  user.Request{Email: ""},
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"\"}"),
 			wantCode: 400,
+			verify:   func(t *testing.T, res *http.Response) {},
+		},
+		{
+			name:     "given invalid id should return 422",
+			route:    "/user",
+			reqBody:  []byte("{\"id\":\"333cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"test1@fake.com\"}"),
+			wantCode: 422,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			reqJson, err := json.Marshal(tt.reqBody)
-			assert.NoErr(err)
-
-			req := httptest.NewRequest("PUT", tt.route, bytes.NewReader(reqJson))
+			req := httptest.NewRequest("PUT", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
 			// when
@@ -195,9 +196,9 @@ func TestHandleDeleteById(t *testing.T) {
 			},
 		},
 		{
-			name:     "given empty user id should return 400",
+			name:     "given empty user id should return 404",
 			args:     args{id: ""},
-			wantCode: 400,
+			wantCode: 404,
 			verify: func(id string, t *testing.T) {
 			},
 		},
@@ -250,7 +251,7 @@ func TestHandleGetById(t *testing.T) {
 				userDto := &user.Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
-				assert.Equal(userDto.Email, "test1@fake.com")
+				assert.Equal(userDto.Email, "john@smith.com")
 				assert.Equal(userDto.Gender.Numberfy(), user.MALE)
 			},
 		},
@@ -262,9 +263,9 @@ func TestHandleGetById(t *testing.T) {
 			},
 		},
 		{
-			name:     "given empty user id should return 400",
+			name:     "given empty user id should return 404",
 			args:     args{id: ""},
-			wantCode: 400,
+			wantCode: 404,
 			verify: func(t *testing.T, res *http.Response) {
 			},
 		},
