@@ -74,6 +74,7 @@ func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 		}
 
 		// response
+		c.Status(fiber.StatusCreated)
 		return c.JSON(res)
 	}
 }
