@@ -8,6 +8,7 @@ var (
 	ErrEntityUpdate      = errors.New("failed to update entity")
 	ErrGetById           = errors.New("failed to get entity by id")
 	ErrInvalidId         = errors.New("invalid id")
+	ErrInvalidCode       = errors.New("invalid code")
 	ErrDeleteById        = errors.New("failed to delete entity by id")
 	ErrInvalidPageSize   = errors.New("invalid page size number")
 	ErrInvalidPageOffset = errors.New("invalid page offset number")

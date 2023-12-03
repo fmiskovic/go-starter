@@ -27,60 +27,6 @@ func NewHandler(service ports.UserService[uuid.UUID]) Handler {
 	}
 }
 
-// HandleSingIn is used to authenticate user.
-func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		// parse request body
-		var req = new(user.SignInRequest)
-		if err := c.BodyParser(req); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
-		}
-
-		// validate request
-		if errs := h.validator.Validate(req); len(errs) > 0 {
-			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
-		}
-
-		// call core service
-		res, err := h.service.SingIn(c.Context(), *req)
-		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
-		}
-
-		// response
-		return c.JSON(res)
-	}
-}
-
-// HandleSignUp is used to register new user.
-func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
-	return func(c *fiber.Ctx) error {
-		// parse request body
-		var req = new(user.CreateRequest)
-		if err := c.BodyParser(req); err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
-		}
-
-		// validate request
-		if errs := h.validator.Validate(req); len(errs) > 0 {
-			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
-		}
-
-		// call core service
-		res, err := h.service.SingUp(c.Context(), *req)
-		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
-		}
-
-		// response
-		return c.JSON(res)
-	}
-}
-
 // HandleCreate creates handler func that is responsible for persisting new user entity.
 // Response is UserDto json.
 func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {

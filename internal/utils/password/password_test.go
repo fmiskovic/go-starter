@@ -1,6 +1,8 @@
 package password
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestHashPassword(t *testing.T) {
 	type args struct {
