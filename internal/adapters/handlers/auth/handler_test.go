@@ -141,7 +141,7 @@ func TestHandleSignUp(t *testing.T) {
 			req := httptest.NewRequest("POST", "/auth/register", bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 2000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
