@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS credentials (
     password_hash VARCHAR(255) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE INDEX credentials_username_index ON credentials (username);
