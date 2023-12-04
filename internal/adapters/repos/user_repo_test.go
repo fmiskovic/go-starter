@@ -41,7 +41,7 @@ func TestUserRepo_GetById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:    "given non-exisitng id should return error",
+			name:    "given non-existng id should return error",
 			givenId: uuid.MustParse("22222222-b2b0-4051-9eb6-9a99e451af01"),
 			want:    nil,
 			wantErr: errors.New("sql: no rows in result set"),
@@ -94,7 +94,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:    "given non-existing id should not return error",
+			name:    "given non-existng id should not return error",
 			givenId: uuid.MustParse("22222222-b2b0-4051-9eb6-9a99e451af01"),
 			verify: func(id uuid.UUID, t *testing.T) {
 				_, err := repo.GetById(ctx, id)
@@ -220,7 +220,7 @@ func TestUserRepo_Update(t *testing.T) {
 			wantErr: ErrNilEntity,
 		},
 		{
-			name: "given user with non-existing id should return error",
+			name: "given user with non-existng id should return error",
 			args: args{
 				u: user.New(user.Email("updated3@fake.com")),
 			},
@@ -339,13 +339,13 @@ func TestUserRepo_GetByUsername(t *testing.T) {
 			wantErr:   false,
 		},
 		{
-			name:      "given non-existing username should return error",
-			args:      args{username: "non-existing-username"},
+			name:      "given non-existng username should return error",
+			args:      args{username: "non-existng-username"},
 			wantEmail: nil,
 			wantErr:   true,
 		},
 		{
-			name:      "given emtpy username should return error",
+			name:      "given empty username should return error",
 			args:      args{username: ""},
 			wantEmail: nil,
 			wantErr:   true,

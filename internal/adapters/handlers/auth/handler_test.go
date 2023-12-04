@@ -58,8 +58,8 @@ func TestHandleSignIn(t *testing.T) {
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 		{
-			name:     "given non-exisitng username should return 400",
-			reqBody:  []byte("{\"username\":\"non-exising\",\"password\":\"password1\"}"),
+			name:     "given non-existing username should return 400",
+			reqBody:  []byte("{\"username\":\"non-existing\",\"password\":\"password1\"}"),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
