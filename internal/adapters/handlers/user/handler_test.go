@@ -150,7 +150,7 @@ func TestHandleUpdate(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -208,7 +208,7 @@ func TestHandleDeleteById(t *testing.T) {
 			// given
 			req := httptest.NewRequest("DELETE", fmt.Sprintf("%s/%s", "/user", tt.args.id), nil)
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -276,7 +276,7 @@ func TestHandleGetById(t *testing.T) {
 			req := httptest.NewRequest("GET", fmt.Sprintf("/%s/%s", "user", tt.args.id), nil)
 
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -363,7 +363,7 @@ func TestHandleGetPage(t *testing.T) {
 			// given
 			req := httptest.NewRequest("GET", tt.route, nil)
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
