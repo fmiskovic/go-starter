@@ -5,18 +5,18 @@ ___
 # Golang Fullstack Starter Pack
 
 ## Description
-A comprehensive starter pack for Golang fullstack development, designed to streamline the process of setting up a fullstack web application with Server-Side Rendering (SSR) out of the box.
+A comprehensive starter pack for Golang fullstack development, hexagonal architecture designed to streamline the process of setting up a fullstack web application with Server-Side Rendering (SSR) and JWT authentication out of the box.
 
 ## Motivation
-As a backend developer, I sought a suitable solution for the frontend and experimented with React, Vue (both with and without Nuxt). Despite their unnecessary complexity, numerous dependencies for a simple "Hello world," and the overhead introduced by features like the virtual DOM, I also observed a trend toward server-side rendering (SSR).
+As a backend developer, I sought a suitable solution for the frontend and experimented with React, Vue (with and without Nuxt). Despite their unnecessary complexity, numerous dependencies for a simple "Hello world," and the overhead introduced by features like the virtual DOM, I also observed a trend toward server-side rendering (SSR).
 
 In light of this shift, let me express that we don't necessarily require React, Vue, Svelte, Angular, or any similar frameworks. What we truly need is simplicity.
 
 ## Why did I build this?
-As a developer, I often found myself spending valuable time on repetitive tasks when starting a new Golang fullstack project. This starter pack is my solution to this problem, offering a pre-configured environment that allows developers to focus on building features rather than dealing with boilerplate code and setup complexities.
+I often found myself spending valuable time on repetitive tasks when starting a new Golang fullstack project. This starter pack is my solution to this problem, offering a pre-configured environment that allows developers to focus on building features rather than dealing with boilerplate code and setup complexities.
 
 ## What problem does it solve?
-This project addresses the pain points associated with the initial setup of fullstack applications. It provides a ready-to-use template with SSR support, allowing developers to kickstart their projects without the hassle of configuring the frontend and backend separately.
+This project addresses the pain points associated with the initial setup of fullstack applications. It provides a ready-to-use template with hexagonal architecture, SSR and JWT auth support, allowing developers to kickstart their projects without the hassle of configuring the frontend and backend separately.
 
 ## Tech Stack
 - Backend:
@@ -58,6 +58,8 @@ Look at [Makefile](https://github.com/fmiskovic/go-starter/blob/main/Makefile)
 - `DB_HOST` - defailt is ***localhost:5432***
 - `DB_MAX_IDLE_CONN` - default is ***num of cpu + 1***
 - `DB_MAX_OPEN_CONN` - default is ***num of cpu + 1***
+- `AUTH_JWT_EXP_TIME` - default is ***24 hours***
+- `AUTH_JWT_SECRET` - default is ***secret***
 
 ### TODO list
 - Basic authentication and authorization
