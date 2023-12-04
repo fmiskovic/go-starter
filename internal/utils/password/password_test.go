@@ -15,6 +15,16 @@ func TestHashPassword(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name: "given adminadmin password should return adminadmin hash",
+			args: args{password: "adminadmin"},
+			verify: func(password string, hash string, t *testing.T) {
+				if !CheckPasswordHash(password, hash) {
+					t.Errorf("Verify failed. The password: [%s] doesnot match the hash: [%s].", password, hash)
+				}
+			},
+			wantErr: false,
+		},
+		{
 			name: "given password should return hash",
 			args: args{password: "Password1234!"},
 			verify: func(password string, hash string, t *testing.T) {

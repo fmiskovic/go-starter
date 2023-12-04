@@ -47,6 +47,7 @@ func (r Router) initAuthRouters() {
 
 	handler := auth.NewHandler(r.service)
 	a.Post("/login", handler.HandleSignIn())
+	a.Get("/logout", handler.HandleSignOut())
 	a.Post("/register", handler.HandleSignUp())
 	a.Post("/email", handler.HandleConfirmEmail())
 	a.Post("/password", handler.HandleChangePassword())

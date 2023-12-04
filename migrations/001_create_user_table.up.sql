@@ -6,6 +6,6 @@ CREATE TABLE IF NOT EXISTS users (
   full_name VARCHAR(255),
   date_of_birth DATE,
   location VARCHAR(255),
-  gender VARCHAR(10),
+  gender INTEGER,
   enabled BOOLEAN NOT NULL DEFAULT TRUE
 );

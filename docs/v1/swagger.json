@@ -73,6 +73,17 @@
           }
         }
       },
+      "/auth/logout": {
+        "get": {
+          "tags": ["Auth"],
+          "summary": "Logout user",
+          "responses": {
+            "200": {
+              "description": "User successfully logout"
+            }
+          }
+        }
+      },
       "/api/v1/user": {
         "get": {
           "tags": ["User"],
