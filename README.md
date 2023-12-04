@@ -62,7 +62,6 @@ Look at [Makefile](https://github.com/fmiskovic/go-starter/blob/main/Makefile)
 - `AUTH_JWT_SECRET` - default is ***secret***
 
 ### TODO list
-- Basic authentication and authorization
 - Add AlpineJS entity handling (CRUD operations)
 - Users view
 - Email notifications

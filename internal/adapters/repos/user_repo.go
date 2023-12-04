@@ -113,7 +113,7 @@ func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.
 		Model(u).
 		Relation("Roles").
 		Relation("Credentials", func(sq *bun.SelectQuery) *bun.SelectQuery {
-			return sq.Where("? = ?", bun.Ident("username"), username)
+			return sq.Where("username = ?", username)
 		}).
 		Scan(ctx)
 
