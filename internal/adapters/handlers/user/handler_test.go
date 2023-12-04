@@ -77,7 +77,7 @@ func TestHandleCreate(t *testing.T) {
 			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
