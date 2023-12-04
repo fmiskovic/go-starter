@@ -40,7 +40,7 @@ func (h Handler) HandleSignIn() fiber.Handler {
 		}
 
 		// call core service
-		res, err := h.service.SingIn(c.Context(), *req)
+		res, err := h.service.SingIn(c.Context(), req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
@@ -68,7 +68,7 @@ func (h Handler) HandleSignUp() fiber.Handler {
 		}
 
 		// call core service
-		res, err := h.service.SingUp(c.Context(), *req)
+		res, err := h.service.SingUp(c.Context(), req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnprocessableEntity,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrSignUp)).Error())
@@ -96,7 +96,7 @@ func (h Handler) HandleChangePassword() fiber.Handler {
 		}
 
 		// call core service
-		if err := h.service.ChangePassword(c.Context(), *req); err != nil {
+		if err := h.service.ChangePassword(c.Context(), req); err != nil {
 			return fiber.NewError(fiber.StatusUnprocessableEntity, apiErr.New(apiErr.WithSvcErr(err)).Error())
 		}
 

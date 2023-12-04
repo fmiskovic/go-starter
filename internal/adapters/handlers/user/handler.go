@@ -44,7 +44,7 @@ func (uh Handler) HandleCreate() fiber.Handler {
 		}
 
 		// call core service
-		res, err := uh.service.Create(c.Context(), *req)
+		res, err := uh.service.Create(c.Context(), req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityCreate)).Error())
@@ -73,7 +73,7 @@ func (uh Handler) HandleUpdate() fiber.Handler {
 		}
 
 		// call core service
-		res, err := uh.service.Update(c.Context(), *req)
+		res, err := uh.service.Update(c.Context(), req)
 		if err != nil {
 			return fiber.NewError(fiber.StatusUnprocessableEntity,
 				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityUpdate)).Error())

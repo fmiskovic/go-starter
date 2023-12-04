@@ -2,7 +2,6 @@ package testx
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fmiskovic/go-starter/internal/adapters/db"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
@@ -20,9 +20,6 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dbfixture"
-	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/migrate"
 )
 
@@ -66,7 +63,9 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 
 			// connect db
 			conn := runtime.NumCPU() + 1
-			bunDb, err = connectDb(dbUri, conn)
+			myDb := db.NewDatabase(dbUri, conn, conn)
+
+			bunDb, err = myDb.OpenDb()
 			if err != nil {
 				t.Fatalf("db connection failed: %v", err)
 			}
@@ -94,22 +93,6 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 		}
 		cancel()
 	}, ctx, bunDb
-}
-
-func connectDb(uri string, conn int) (*bun.DB, error) {
-	sqlDb := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(uri)))
-	if err := sqlDb.Ping(); err != nil {
-		return nil, err
-	}
-
-	sqlDb.SetMaxOpenConns(conn)
-	sqlDb.SetMaxIdleConns(conn)
-	bunDb := bun.NewDB(sqlDb, pgdialect.New())
-	if utils.IsDev() {
-		bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
-	}
-
-	return bunDb, nil
 }
 
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {

@@ -66,7 +66,9 @@ func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ErrNilEntity
 	}
+
 	u.UpdatedAt = time.Now()
+
 	if _, err := repo.db.NewUpdate().Model(u).OmitZero().Where("id = ?", u.ID).Exec(ctx); err != nil {
 		return err
 	}

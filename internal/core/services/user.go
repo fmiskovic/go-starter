@@ -28,7 +28,7 @@ func NewUserService(userRepo ports.UserRepo[uuid.UUID], authConfig configs.AuthC
 
 // SingIn authenticates user.
 // Returns new signed jwt token.
-func (s UserService) SingIn(ctx context.Context, req user.SignInRequest) (*user.SignInResponse, error) {
+func (s UserService) SingIn(ctx context.Context, req *user.SignInRequest) (*user.SignInResponse, error) {
 	u, err := s.repo.GetByUsername(ctx, req.Username)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (s UserService) ConfirmEmail(ctx context.Context, req user.ConfirmEmailRequ
 }
 
 // SingUp register new user.
-func (s UserService) SingUp(ctx context.Context, req user.CreateRequest) (*user.SignUpResponse, error) {
+func (s UserService) SingUp(ctx context.Context, req *user.CreateRequest) (*user.SignUpResponse, error) {
 	u, err := s.createUser(ctx, req)
 	if err != nil {
 		return nil, err
@@ -84,22 +84,18 @@ func (s UserService) SingUp(ctx context.Context, req user.CreateRequest) (*user.
 // Create creates new user.
 // This function is for admin user only.
 // Returns newly created user.
-func (s UserService) Create(ctx context.Context, req user.CreateRequest) (*user.CreateResponse, error) {
+func (s UserService) Create(ctx context.Context, req *user.CreateRequest) (*user.CreateResponse, error) {
 	u, err := s.createUser(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
-	u, err = s.repo.GetById(ctx, u.ID)
-	if err != nil {
-		return nil, err
-	}
 	return &user.CreateResponse{Dto: *user.ConvertToDto(u)}, nil
 }
 
 // Update updates existing user.
 // Returns user with fresh changes.
-func (s UserService) Update(ctx context.Context, req user.UpdateRequest) (*user.UpdateResponse, error) {
+func (s UserService) Update(ctx context.Context, req *user.UpdateRequest) (*user.UpdateResponse, error) {
 	id, err := uuid.Parse(req.ID)
 	if err != nil {
 		return nil, err
@@ -113,11 +109,6 @@ func (s UserService) Update(ctx context.Context, req user.UpdateRequest) (*user.
 		user.Sex(req.Gender.Numberfy()),
 	)
 	if err = s.repo.Update(ctx, u); err != nil {
-		return nil, err
-	}
-
-	u, err = s.repo.GetById(ctx, id)
-	if err != nil {
 		return nil, err
 	}
 
@@ -165,7 +156,7 @@ func (s UserService) AddRoles(ctx context.Context, roles []string, id uuid.UUID)
 }
 
 // ChangePassword updates user password.
-func (s UserService) ChangePassword(ctx context.Context, req user.ChangePasswordRequest) error {
+func (s UserService) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
 	// TODO: implement
 	return nil
 }
@@ -176,7 +167,7 @@ func (s UserService) EnableDisable(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (s UserService) createUser(ctx context.Context, req user.CreateRequest) (*user.User, error) {
+func (s UserService) createUser(ctx context.Context, req *user.CreateRequest) (*user.User, error) {
 	pwdHash, err := password.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
