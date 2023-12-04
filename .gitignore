@@ -2,5 +2,4 @@ bin
 .env
 node_modules
 .idea
-.vscode
 .DS_store

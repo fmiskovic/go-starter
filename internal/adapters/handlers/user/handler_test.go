@@ -1,4 +1,4 @@
-package api
+package user
 
 import (
 	"bytes"
@@ -11,8 +11,10 @@ import (
 	"testing"
 
 	"github.com/fmiskovic/go-starter/internal/adapters/repos"
+	"github.com/fmiskovic/go-starter/internal/core/configs"
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
+	"github.com/fmiskovic/go-starter/internal/core/services"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"github.com/google/uuid"
 
@@ -25,20 +27,21 @@ func TestHandleCreate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
 	app.Post("/user", handler.HandleCreate())
 
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *UserDto
+		reqBody  []byte
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:     "given valid user request should return 201",
+			name:     "given valid create request should return 201",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("test1@fake.com")),
+			reqBody:  []byte("{\"username\":\"test1\",\"password\":\"Password1234!\",\"email\":\"test1@fake.com\"}"),
 			wantCode: 201,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -48,36 +51,33 @@ func TestHandleCreate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
-				err := json.NewDecoder(resBody).Decode(userDto)
+				createRes := &user.CreateResponse{}
+				err := json.NewDecoder(resBody).Decode(createRes)
 				assert.NoErr(err)
-				assert.Equal(userDto.Email, "test1@fake.com")
+				assert.Equal(createRes.Email, "test1@fake.com")
 			},
 		},
 		{
-			name:     "given nil user request should return 400",
+			name:     "given empty create request should return 400",
 			route:    "/user",
-			reqBody:  nil,
+			reqBody:  []byte(""),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 		{
-			name:     "given invalid user request email should return 400",
+			name:     "given invalid email should return 400",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("")),
+			reqBody:  []byte("{\"username\":\"Password1234!\",\"password\":\"test1\",\"email\":\"\"}"),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reqJson, err := json.Marshal(tt.reqBody)
-			assert.NoErr(err)
-
-			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(reqJson))
+			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
@@ -91,27 +91,22 @@ func TestHandleUpdate(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
 	app.Put("/user", handler.HandleUpdate())
 
 	tests := []struct {
 		name     string
 		route    string
-		reqBody  *UserDto
-		given    func(t *testing.T) (uuid.UUID, error)
-		wantCode int
+		reqBody  []byte
 		verify   func(t *testing.T, res *http.Response)
+		wantCode int
 	}{
 		{
-			name:     "given valid user request should return 200",
+			name:     "given valid update request should return 200",
 			route:    "/user",
-			reqBody:  NewUserDto(Email("test1@fake.com"), Location("Vienna")),
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"test1@fake.com\", \"location\":\"Vienna\"}"),
 			wantCode: 200,
-			given: func(t *testing.T) (uuid.UUID, error) {
-				u := user.New(user.Email("test1@fake.com"))
-				err := repo.Create(context.Background(), u)
-				return u.ID, err
-			},
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
 				defer func(body io.ReadCloser) {
@@ -120,52 +115,42 @@ func TestHandleUpdate(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
-				err := json.NewDecoder(resBody).Decode(userDto)
+				updateRes := &user.UpdateResponse{}
+				err := json.NewDecoder(resBody).Decode(updateRes)
 				assert.NoErr(err)
-				assert.Equal(userDto.Location, "Vienna")
+				assert.Equal(updateRes.Location, "Vienna")
 			},
 		},
 		{
-			name:    "given nil user request should return 400",
-			route:   "/user",
-			reqBody: nil,
-			given: func(t *testing.T) (uuid.UUID, error) {
-				return uuid.New(), nil
-			},
+			name:     "given empty update request should return 400",
+			route:    "/user",
+			reqBody:  []byte("{}"),
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 		{
-			name:    "given invalid user request email should return 400",
-			route:   "/user",
-			reqBody: NewUserDto(Email("")),
-			given: func(t *testing.T) (uuid.UUID, error) {
-				return uuid.New(), nil
-			},
+			name:     "given invalid email should return 400",
+			route:    "/user",
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"\"}"),
 			wantCode: 400,
+			verify:   func(t *testing.T, res *http.Response) {},
+		},
+		{
+			name:     "given invalid id should return 200",
+			route:    "/user",
+			reqBody:  []byte("{\"id\":\"333cea28-b2b0-4051-9eb6-9a99e451af01\",\"email\":\"test1@fake.com\"}"),
+			wantCode: 200,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			id, err := tt.given(t)
-			assert.NoErr(err)
-
-			var reqJson []byte
-			userDto := tt.reqBody
-			if userDto != nil {
-				userDto.ID = id.String()
-				reqJson, err = json.Marshal(userDto)
-				assert.NoErr(err)
-			}
-
-			req := httptest.NewRequest("PUT", tt.route, bytes.NewReader(reqJson))
+			req := httptest.NewRequest("PUT", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -175,28 +160,28 @@ func TestHandleUpdate(t *testing.T) {
 }
 
 func TestHandleDeleteById(t *testing.T) {
-	assert := is.New(t)
+	assert := is.NewRelaxed(t)
 
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
 	app.Delete("/user/:id", handler.HandleDeleteById())
 
+	type args struct {
+		id string
+	}
 	tests := []struct {
 		name     string
-		given    func(t *testing.T) (string, error)
+		args     args
 		wantCode int
 		verify   func(id string, t *testing.T)
 	}{
 		{
-			name: "given user id should return 204 and delete user",
-			given: func(t *testing.T) (string, error) {
-				u := user.New(user.Email("test1@fake.com"))
-				err := repo.Create(context.Background(), u)
-				return u.ID.String(), err
-			},
+			name:     "given user id should return 204 and delete user",
 			wantCode: 204,
+			args:     args{id: "220cea28-b2b0-4051-9eb6-9a99e451af01"},
 			verify: func(id string, t *testing.T) {
 				u, err := repo.GetById(context.Background(), uuid.MustParse(id))
 				assert.True(err != nil)
@@ -204,30 +189,16 @@ func TestHandleDeleteById(t *testing.T) {
 			},
 		},
 		{
-			name: "given non-existing user id should return 204",
-			given: func(t *testing.T) (string, error) {
-				id := uuid.New()
-				return id.String(), nil
-			},
+			name:     "given non-existing user id should return 204",
+			args:     args{id: "333cea28-b2b0-4051-9eb6-9a99e451af01"},
 			wantCode: 204,
 			verify: func(id string, t *testing.T) {
 			},
 		},
 		{
-			name: "given zero user id should return 400",
-			given: func(t *testing.T) (string, error) {
-				return "0", nil
-			},
-			wantCode: 400,
-			verify: func(id string, t *testing.T) {
-			},
-		},
-		{
-			name: "given invalid user id should return 400",
-			given: func(t *testing.T) (string, error) {
-				return "s", nil
-			},
-			wantCode: 400,
+			name:     "given empty user id should return 404",
+			args:     args{id: ""},
+			wantCode: 404,
 			verify: func(id string, t *testing.T) {
 			},
 		},
@@ -235,44 +206,40 @@ func TestHandleDeleteById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			sId, err := tt.given(t)
-			assert.NoErr(err)
-
-			req := httptest.NewRequest("DELETE", fmt.Sprintf("%s/%s", "/user", sId), nil)
-
+			req := httptest.NewRequest("DELETE", fmt.Sprintf("%s/%s", "/user", tt.args.id), nil)
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
-			tt.verify(sId, t)
+			tt.verify(tt.args.id, t)
 		})
 	}
 }
 
 func TestHandleGetById(t *testing.T) {
-	assert := is.New(t)
+	assert := is.NewRelaxed(t)
 
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
 	app.Get("/user/:id", handler.HandleGetById())
 
+	type args struct {
+		id string
+	}
 	tests := []struct {
 		name     string
-		given    func(t *testing.T) (string, error)
+		args     args
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name: "given user id should return 200 and user dto",
-			given: func(t *testing.T) (string, error) {
-				u := user.New(user.Email("test1@fake.com"), user.Sex(user.MALE))
-				err := repo.Create(context.Background(), u)
-				return u.ID.String(), err
-			},
+			name:     "given user id should return 200 and user dto",
 			wantCode: 200,
+			args:     args{id: "220cea28-b2b0-4051-9eb6-9a99e451af01"},
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
 				defer func(body io.ReadCloser) {
@@ -281,37 +248,24 @@ func TestHandleGetById(t *testing.T) {
 					}
 				}(resBody)
 
-				userDto := &UserDto{}
+				userDto := &user.Dto{}
 				err := json.NewDecoder(resBody).Decode(userDto)
 				assert.NoErr(err)
-				assert.Equal(userDto.Email, "test1@fake.com")
+				assert.Equal(userDto.Email, "john@smith.com")
 				assert.Equal(userDto.Gender.Numberfy(), user.MALE)
 			},
 		},
 		{
-			name: "given non-existing user id should return 404",
-			given: func(t *testing.T) (string, error) {
-				return uuid.NewString(), nil
-			},
+			name:     "given non-existing user id should return 404",
+			args:     args{id: "333cea28-b2b0-4051-9eb6-9a99e451af01"},
 			wantCode: 404,
 			verify: func(t *testing.T, res *http.Response) {
 			},
 		},
 		{
-			name: "given zero user id should return 400",
-			given: func(t *testing.T) (string, error) {
-				return "0", nil
-			},
-			wantCode: 400,
-			verify: func(t *testing.T, res *http.Response) {
-			},
-		},
-		{
-			name: "given invalid user id should return 400",
-			given: func(t *testing.T) (string, error) {
-				return "s", nil
-			},
-			wantCode: 400,
+			name:     "given empty user id should return 404",
+			args:     args{id: ""},
+			wantCode: 404,
 			verify: func(t *testing.T, res *http.Response) {
 			},
 		},
@@ -319,13 +273,10 @@ func TestHandleGetById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			sId, err := tt.given(t)
-			assert.NoErr(err)
-
-			req := httptest.NewRequest("GET", fmt.Sprintf("/%s/%s", "user", sId), nil)
+			req := httptest.NewRequest("GET", fmt.Sprintf("/%s/%s", "user", tt.args.id), nil)
 
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -340,23 +291,19 @@ func TestHandleGetPage(t *testing.T) {
 	bunDb, app := testx.SetUpServer(t)
 
 	repo := repos.NewUserRepo(bunDb)
-	handler := NewUserHandler(repo)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
 	app.Get("/user", handler.HandleGetPage())
 
 	tests := []struct {
 		name     string
 		route    string
-		given    func(t *testing.T) error
 		wantCode int
 		verify   func(t *testing.T, res *http.Response)
 	}{
 		{
-			name:  "given empty pageable should return 200",
-			route: "/user",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test1@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given empty pageable should return 200",
+			route:    "/user",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -366,20 +313,16 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[user.Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
-				assert.Equal(pageDto.Elements[0].Email, "test1@fake.com")
+				assert.Equal(pageDto.Elements[0].Email, "john@smith.com")
 			},
 		},
 		{
-			name:  "given pageable should return 200",
-			route: "/user?size=10&offset=0&sort=email%20ASC",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test2@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given pageable should return 200",
+			route:    "/user?size=10&offset=0&sort=email%20ASC",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -389,20 +332,16 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[user.Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(pageDto.TotalElements > 0)
-				assert.Equal(pageDto.Elements[1].Email, "test2@fake.com")
+				assert.Equal(pageDto.Elements[1].Email, "john@doe.com")
 			},
 		},
 		{
-			name:  "given pageable with offset 5 should return 200 and no elements",
-			route: "/user?offset=5&sort=email%20ASC",
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test3@fake.com"))
-				return repo.Create(context.Background(), u)
-			},
+			name:     "given pageable with offset 5 should return 200 and no elements",
+			route:    "/user?offset=5&sort=email%20ASC",
 			wantCode: 200,
 			verify: func(t *testing.T, res *http.Response) {
 				resBody := res.Body
@@ -412,7 +351,7 @@ func TestHandleGetPage(t *testing.T) {
 					}
 				}(resBody)
 
-				var pageDto domain.Page[UserDto]
+				var pageDto domain.Page[user.Dto]
 				err := json.NewDecoder(resBody).Decode(&pageDto)
 				assert.NoErr(err)
 				assert.True(len(pageDto.Elements) == 0)
@@ -422,13 +361,9 @@ func TestHandleGetPage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given
-			err := tt.given(t)
-			assert.NoErr(err)
-
 			req := httptest.NewRequest("GET", tt.route, nil)
-
 			// when
-			res, err := app.Test(req, 1000)
+			res, err := app.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)

@@ -1,4 +1,4 @@
-package api
+package validators
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ type Validator struct {
 	validate *validator.Validate
 }
 
-// NewValidator instantiate new Validator.
-func NewValidator() Validator {
+// New instantiate new Validator.
+func New() Validator {
 	return Validator{validate: validator.New()}
 }
 

@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/fmiskovic/go-starter/internal/utils"
 	"log/slog"
 	"runtime"
 	"strconv"
+	"time"
+
+	"github.com/fmiskovic/go-starter/internal/core/configs"
+	"github.com/fmiskovic/go-starter/internal/utils"
 )
 
 var defaultConfig ServerConfig
@@ -16,6 +19,7 @@ type ServerConfig struct {
 	DbConnString string
 	MaxOpenConn  int
 	MaxIdleConn  int
+	AuthConfig   configs.AuthConfig
 }
 
 func init() {
@@ -23,6 +27,10 @@ func init() {
 		slog.Warn("unable to locate .env file, default environment values will be used")
 	}
 
+	defaultConfig = initDefaultServerConfig()
+}
+
+func initDefaultServerConfig() ServerConfig {
 	var (
 		user   = utils.GetEnvOrDefault("DB_USER", "dbadmin")
 		pass   = utils.GetEnvOrDefault("DB_PASSWORD", "dbadmin")
@@ -48,11 +56,30 @@ func init() {
 		maxIdleConn = numCpu
 	}
 
-	defaultConfig = ServerConfig{
+	slog.Info("default server config is initialized")
+
+	return ServerConfig{
 		ListenAddr:   listenAddr,
 		DbConnString: conn,
 		MaxOpenConn:  maxOpenConn,
 		MaxIdleConn:  maxIdleConn,
+		AuthConfig:   initDefaultAuthConfig(),
 	}
-	slog.Info("default server config is initialized")
+}
+
+func initDefaultAuthConfig() configs.AuthConfig {
+	// parsing DB_MAX_IDLE_CONN variable
+	expTime, err := strconv.Atoi(utils.GetEnvOrDefault("AUTH_JWT_EXP_TIME", "24"))
+	if err != nil {
+		slog.Warn("error parsing AUTH_JWT_EXP_TIME variable, using default", "error", err.Error())
+		expTime = 24
+	}
+
+	secret := utils.GetEnvOrDefault("AUTH_JWT_SECRET", "secret")
+
+	slog.Info("default auth config is initialized")
+	return configs.AuthConfig{
+		TokenExp: time.Duration(expTime),
+		Secret:   secret,
+	}
 }

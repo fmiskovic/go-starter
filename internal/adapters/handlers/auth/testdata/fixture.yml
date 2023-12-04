@@ -1,0 +1,57 @@
+- model: User
+  rows:
+    - id: 220cea28-b2b0-4051-9eb6-9a99e451af01
+      full_name: John Smith
+      email: john@smith.com
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      date_of_birth: 1980-11-24
+      location: Tokio
+    - id: 220cea28-b2b0-4051-9eb6-9a99e451af02
+      full_name: Jonh Doe
+      email: john@doe.com
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      date_of_birth: 1999-04-11
+      location: New York
+    - id: 220cea28-b2b0-4051-9eb6-9a99e451af03
+      full_name: Emily Parker
+      email: em@parker.com
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      date_of_birth: 2000-08-01
+      location: Los Angeles
+
+- model: Credentials
+  rows:
+    - id: 210cea28-b2b0-4051-9eb6-9a99e451af01
+      username: username1
+      password_hash: $2a$14$2NdNcMhtMckHIlvG9VUXFudSXo94/I5u41NxRidZzebyH90xJwqMq
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01
+    - id: 210cea28-b2b0-4051-9eb6-9a99e451af02
+      username: username2
+      password_hash: password2
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af02
+    - id: 210cea28-b2b0-4051-9eb6-9a99e451af03
+      username: username3
+      password_hash: password3
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af03
+
+- model: Role
+  rows:
+    - id: 200cea28-b2b0-4051-9eb6-9a99e451af01
+      name: ROLE_ADMIN
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01
+    - id: 200cea28-b2b0-4051-9eb6-9a99e451af02
+      name: ROLE_USER
+      created_at: '{{ now }}'
+      updated_at: '{{ now }}'
+      user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01

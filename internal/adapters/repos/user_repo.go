@@ -2,6 +2,7 @@ package repos
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
@@ -11,7 +12,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// UserRepo is implementation of generic Repo interface.
+// UserRepo is implementation of ports.UserRepo interface.
 type UserRepo struct {
 	db *bun.DB
 }
@@ -39,11 +40,25 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 		return ErrNilEntity
 	}
 
-	if _, err := repo.db.NewInsert().Model(u).Exec(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		_, err := tx.NewInsert().Model(u).Exec(ctx)
+		if err != nil {
+			return err
+		}
+		if u.Credentials != nil {
+			_, err = tx.NewInsert().Model(u.Credentials).Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		if u.Roles != nil {
+			_, err = tx.NewInsert().Model(&u.Roles).Exec(ctx)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // Update existing persisted user entity.
@@ -51,7 +66,9 @@ func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ErrNilEntity
 	}
+
 	u.UpdatedAt = time.Now()
+
 	if _, err := repo.db.NewUpdate().Model(u).OmitZero().Where("id = ?", u.ID).Exec(ctx); err != nil {
 		return err
 	}
@@ -89,4 +106,22 @@ func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Pag
 		TotalElements: count,
 		Elements:      users,
 	}, err
+}
+
+func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.User, error) {
+	var u = new(user.User)
+
+	err := repo.db.NewSelect().
+		Model(u).
+		Relation("Roles").
+		Relation("Credentials", func(sq *bun.SelectQuery) *bun.SelectQuery {
+			return sq.Where("username = ?", username)
+		}).
+		Scan(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }

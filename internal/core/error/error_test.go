@@ -1,11 +1,11 @@
-package api
+package error
 
 import (
 	"errors"
 	"testing"
 )
 
-func TestErrorX_Error(t *testing.T) {
+func TestApiError(t *testing.T) {
 	type fields struct {
 		srvErr error
 		appErr error

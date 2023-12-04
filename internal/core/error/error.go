@@ -1,4 +1,4 @@
-package api
+package error
 
 import "errors"
 
@@ -8,46 +8,49 @@ var (
 	ErrEntityUpdate      = errors.New("failed to update entity")
 	ErrGetById           = errors.New("failed to get entity by id")
 	ErrInvalidId         = errors.New("invalid id")
+	ErrInvalidCode       = errors.New("invalid code")
 	ErrDeleteById        = errors.New("failed to delete entity by id")
 	ErrInvalidPageSize   = errors.New("invalid page size number")
 	ErrInvalidPageOffset = errors.New("invalid page offset number")
 	ErrGetPage           = errors.New("failed to get entities page")
+	ErrInvalidAuthReq    = errors.New("invalid username or password")
+	ErrSignUp            = errors.New("failed to register user")
 )
 
-// ErrorX represents a custom error struct that contains optionally service and application error.
-type ErrorX struct {
+// ApiError represents a custom error struct that contains optionally service and application error.
+type ApiError struct {
 	srvErr error
 	appErr error
 }
 
 // Error is implementation of error interface.
-func (x ErrorX) Error() string {
+func (x ApiError) Error() string {
 	if x.srvErr == nil && x.appErr == nil {
 		return ""
 	}
 	return errors.Join(x.srvErr, x.appErr).Error()
 }
 
-// New instantiate new ErrorX.
-func New(opts ...Option) *ErrorX {
-	x := &ErrorX{}
+// New instantiate new ApiError.
+func New(opts ...Option) *ApiError {
+	x := &ApiError{}
 	for _, opt := range opts {
 		opt(x)
 	}
 	return x
 }
 
-// Option func used to construct ErrorX.
-type Option func(x *ErrorX)
+// Option func used to construct ApiError.
+type Option func(x *ApiError)
 
 func WithSvcErr(svcErr error) Option {
-	return func(x *ErrorX) {
+	return func(x *ApiError) {
 		x.srvErr = svcErr
 	}
 }
 
 func WithAppErr(appErr error) Option {
-	return func(x *ErrorX) {
+	return func(x *ApiError) {
 		x.appErr = appErr
 	}
 }

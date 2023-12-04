@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"github.com/google/uuid"
@@ -29,38 +30,33 @@ func TestUserRepo_GetById(t *testing.T) {
 	// setup test cases
 	tests := []struct {
 		name    string
-		given   func(t *testing.T) (uuid.UUID, error)
+		givenId uuid.UUID
+		want    any
 		wantErr error
 	}{
 		{
-			name: "given valid id should return user",
-			given: func(t *testing.T) (uuid.UUID, error) {
-				u := user.New(user.Email("test1@gmail.com"))
-				err := repo.Create(ctx, u)
-				return u.ID, err
-			},
+			name:    "given valid id should return user",
+			givenId: uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af01"),
+			want:    "john@smith.com",
 			wantErr: nil,
 		},
 		{
-			name: "given invalid id should return error",
-			given: func(t *testing.T) (uuid.UUID, error) {
-				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
-				return uuid.New(), err
-			},
+			name:    "given non-exisitng id should return error",
+			givenId: uuid.MustParse("22222222-b2b0-4051-9eb6-9a99e451af01"),
+			want:    nil,
 			wantErr: errors.New("sql: no rows in result set"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := tt.given(t)
-			assert.NoErr(err)
 
-			u, err := repo.GetById(ctx, id)
+			u, err := repo.GetById(ctx, tt.givenId)
 
 			assert.Equal(tt.wantErr, err)
 			if u != nil {
-				assert.Equal(u.ID, id)
+				assert.Equal(u.ID, tt.givenId)
+				assert.Equal(u.Email, tt.want)
 			}
 		})
 	}
@@ -83,17 +79,13 @@ func TestUserRepo_DeleteById(t *testing.T) {
 	// setup test cases
 	tests := []struct {
 		name    string
-		given   func(t *testing.T) (uuid.UUID, error)
+		givenId uuid.UUID
 		verify  func(id uuid.UUID, t *testing.T)
 		wantErr error
 	}{
 		{
-			name: "given valid id should delete user",
-			given: func(t *testing.T) (uuid.UUID, error) {
-				u := user.New(user.Email("test1@gmail.com"))
-				err := repo.Create(ctx, u)
-				return u.ID, err
-			},
+			name:    "given valid id should delete user",
+			givenId: uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"),
 			verify: func(id uuid.UUID, t *testing.T) {
 				u, err := repo.GetById(ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
@@ -102,11 +94,8 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "given invalid id should not return error",
-			given: func(t *testing.T) (uuid.UUID, error) {
-				err := repo.Create(ctx, user.New(user.Email("test2@gmail.com")))
-				return uuid.New(), err
-			},
+			name:    "given non-existing id should not return error",
+			givenId: uuid.MustParse("22222222-b2b0-4051-9eb6-9a99e451af01"),
 			verify: func(id uuid.UUID, t *testing.T) {
 				_, err := repo.GetById(ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
@@ -117,12 +106,9 @@ func TestUserRepo_DeleteById(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := tt.given(t)
-			assert.NoErr(err)
-
-			err = repo.DeleteById(ctx, id)
+			err := repo.DeleteById(ctx, tt.givenId)
 			assert.Equal(tt.wantErr, err)
-			tt.verify(id, t)
+			tt.verify(tt.givenId, t)
 		})
 	}
 }
@@ -165,6 +151,16 @@ func TestUserRepo_Create(t *testing.T) {
 			args:    args{u: user.New(user.Email("test1@fake.com"))},
 			wantErr: errors.New("duplicate key value violates unique constraint \"users_email_key\""),
 		},
+		{
+			name: "given valid user with credentials and roles should not return error",
+			args: args{u: user.New(
+				user.Email("test2@fake.com"),
+				user.Credentials(security.NewCredentials("test2", "test2")),
+				user.Roles(security.NewRole(security.ROLE_USER)),
+			),
+			},
+			wantErr: nil,
+		},
 	}
 
 	for _, tt := range tests {
@@ -201,19 +197,14 @@ func TestUserRepo_Update(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		given   func() (*user.User, error)
 		verify  func(id uuid.UUID, t *testing.T)
 		wantErr error
 	}{
 		{
 			name: "given valid user input should not return error",
 			args: args{
-				u: user.New(user.Email("updated1@fake.com")),
-			},
-			given: func() (*user.User, error) {
-				u := user.New(user.Email("test1@fake.com"))
-				err := repo.Create(ctx, u)
-				return u, err
+				u: user.New(user.Email("updated1@fake.com"),
+					user.Id(uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"))),
 			},
 			verify: func(id uuid.UUID, t *testing.T) {
 				u, err := repo.GetById(ctx, id)
@@ -223,21 +214,15 @@ func TestUserRepo_Update(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "given nil user input should return error",
-			args: args{u: nil},
-			given: func() (*user.User, error) {
-				return user.New(), nil
-			},
+			name:    "given nil user input should return error",
+			args:    args{u: nil},
 			verify:  func(id uuid.UUID, t *testing.T) {},
 			wantErr: ErrNilEntity,
 		},
 		{
-			name: "given user with non existing id should return error",
+			name: "given user with non-existing id should return error",
 			args: args{
 				u: user.New(user.Email("updated3@fake.com")),
-			},
-			given: func() (*user.User, error) {
-				return user.New(), nil
 			},
 			verify: func(id uuid.UUID, t *testing.T) {
 				_, err := repo.GetById(ctx, id)
@@ -249,21 +234,16 @@ func TestUserRepo_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u, err := tt.given()
-			assert.NoErr(err)
-
-			if tt.args.u != nil && u != nil {
-				tt.args.u.ID = u.ID
-			}
-
-			err = repo.Update(ctx, tt.args.u)
+			err := repo.Update(ctx, tt.args.u)
 			if tt.wantErr != nil {
 				assert.True(strings.Contains(err.Error(), tt.wantErr.Error()))
 			} else {
 				assert.NoErr(err)
 			}
 
-			tt.verify(u.ID, t)
+			if tt.args.u != nil {
+				tt.verify(tt.args.u.ID, t)
+			}
 		})
 	}
 }
@@ -274,7 +254,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 		return
 	}
 
-	assert := is.New(t)
+	assert := is.NewRelaxed(t)
 
 	// setup db
 	tearDown, ctx, bunDb := testx.SetUpDb(t)
@@ -289,8 +269,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		given   func(t *testing.T) error
-		want    string
+		want    any
 		wantErr error
 	}{
 		{
@@ -302,11 +281,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 					Sort:   domain.NewSort(domain.NewOrder(domain.WithProperty("email"))),
 				},
 			},
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test11@gmail.com"))
-				return repo.Create(ctx, u)
-			},
-			want:    "test11@gmail.com",
+			want:    "john@smith.com", // value from ./testdata/fixutes.yml
 			wantErr: nil,
 		},
 		{
@@ -317,20 +292,13 @@ func TestUserRepo_GetPage(t *testing.T) {
 					Size:   5,
 				},
 			},
-			given: func(t *testing.T) error {
-				u := user.New(user.Email("test12@gmail.com"))
-				return repo.Create(ctx, u)
-			},
-			want:    "test11@gmail.com",
+			want:    "john@smith.com", // value from ./testdata/fixutes.yml
 			wantErr: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.given(t)
-			assert.NoErr(err)
-
 			p, err := repo.GetPage(ctx, tt.args.pageable)
 
 			assert.Equal(tt.wantErr, err)
@@ -338,6 +306,63 @@ func TestUserRepo_GetPage(t *testing.T) {
 				assert.True(len(p.Elements) > 0)
 				assert.True(p.TotalPages == 1)
 				assert.Equal(p.Elements[0].Email, tt.want)
+			}
+		})
+	}
+}
+
+func TestUserRepo_GetByUsername(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	// setup db
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
+	defer tearDown(t)
+
+	repo := NewUserRepo(bunDb)
+
+	type args struct {
+		username string
+	}
+	tests := []struct {
+		name      string
+		args      args
+		wantEmail any
+		wantErr   bool
+	}{
+		{
+			name:      "given valid username should return user",
+			args:      args{username: "username1"},
+			wantEmail: "john@smith.com",
+			wantErr:   false,
+		},
+		{
+			name:      "given non-existing username should return error",
+			args:      args{username: "non-existing-username"},
+			wantEmail: nil,
+			wantErr:   true,
+		},
+		{
+			name:      "given emtpy username should return error",
+			args:      args{username: ""},
+			wantEmail: nil,
+			wantErr:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := repo.GetByUsername(ctx, tt.args.username)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UserRepo.GetByUsername() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != nil && got.Email != tt.wantEmail {
+				t.Errorf("UserRepo.GetByUsername() = %v, want %v", got, tt.wantEmail)
+			}
+			if got != nil && got.Credentials != nil && got.Credentials.Username != tt.args.username {
+				t.Errorf("UserRepo.GetByUsername() = got username %v, want username %v", got.Credentials.Username, tt.args.username)
 			}
 		})
 	}

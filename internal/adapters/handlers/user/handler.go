@@ -1,57 +1,56 @@
-package api
+package user
 
 import (
 	"strconv"
 	"strings"
-	"time"
+
+	apiErr "github.com/fmiskovic/go-starter/internal/core/error"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/user"
 	"github.com/fmiskovic/go-starter/internal/core/ports"
+	"github.com/fmiskovic/go-starter/internal/core/validators"
 	"github.com/google/uuid"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserHandler struct {
-	repo      ports.UserRepo[uuid.UUID]
-	validator Validator
+type Handler struct {
+	service   ports.UserService[uuid.UUID]
+	validator validators.Validator
 }
 
-func NewUserHandler(repo ports.UserRepo[uuid.UUID]) UserHandler {
-	return UserHandler{
-		repo:      repo,
-		validator: NewValidator(),
+func NewHandler(service ports.UserService[uuid.UUID]) Handler {
+	return Handler{
+		service:   service,
+		validator: validators.New(),
 	}
 }
 
 // HandleCreate creates handler func that is responsible for persisting new user entity.
 // Response is UserDto json.
-func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
+func (uh Handler) HandleCreate() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		req, err := parseRequestBody(c)
-		if err != nil {
-			return err
+		// parse request body
+		req := new(user.CreateRequest)
+		if err := c.BodyParser(req); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
 		}
 
+		// validate request
 		if errs := uh.validator.Validate(req); len(errs) > 0 {
 			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
 		}
 
-		// convert request to u entity
-		u, err := ToUser(req)
+		// call core service
+		res, err := uh.service.Create(c.Context(), req)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
-		}
-		u.CreatedAt = time.Now()
-		u.UpdatedAt = time.Now()
-
-		if err := uh.repo.Create(c.Context(), u); err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				New(WithSvcErr(err), WithAppErr(ErrEntityCreate)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityCreate)).Error())
 		}
 
-		res := ToUserDto(u)
+		// response
 		c.Status(fiber.StatusCreated)
 		return toJson(c, res)
 	}
@@ -59,81 +58,85 @@ func (uh UserHandler) HandleCreate() func(c *fiber.Ctx) error {
 
 // HandleUpdate creates handler func that is responsible for updating existing user entity.
 // Response is UserDto json.
-func (uh UserHandler) HandleUpdate() func(c *fiber.Ctx) error {
+func (uh Handler) HandleUpdate() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		req, err := parseRequestBody(c)
-		if err != nil {
-			return err
+		// parse request body
+		req := new(user.UpdateRequest)
+		if err := c.BodyParser(req); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
 		}
 
+		// validate request
 		if errs := uh.validator.Validate(req); len(errs) > 0 {
 			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
 		}
 
-		// convert request to user entity
-		u, err := ToUser(req)
+		// call core service
+		res, err := uh.service.Update(c.Context(), req)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
-		}
-		u.UpdatedAt = time.Now()
-
-		if err := uh.repo.Update(c.Context(), u); err != nil {
-			return fiber.NewError(fiber.StatusInternalServerError,
-				New(WithSvcErr(err), WithAppErr(ErrEntityUpdate)).Error())
+			return fiber.NewError(fiber.StatusUnprocessableEntity,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityUpdate)).Error())
 		}
 
-		return toJson(c, ToUserDto(u))
+		// response
+		return toJson(c, res)
 	}
 }
 
 // HandleGetById creates handler func that is responsible for getting existing user entity by its ID.
 // Response is UserDto json.
-func (uh UserHandler) HandleGetById() func(c *fiber.Ctx) error {
+func (uh Handler) HandleGetById() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// parse query params
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithAppErr(ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
-		u, err := uh.repo.GetById(c.Context(), id)
+		// call core service
+		res, err := uh.service.GetById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusNotFound,
-				New(WithSvcErr(err), WithAppErr(ErrGetById)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrGetById)).Error())
 		}
 
-		return toJson(c, ToUserDto(u))
+		// response
+		return toJson(c, res)
 	}
 }
 
 // HandleDeleteById creates handler func that is responsible for deleting existing user entity by its ID.
-func (uh UserHandler) HandleDeleteById() func(c *fiber.Ctx) error {
+func (uh Handler) HandleDeleteById() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// parse query params
 		sId := c.Params("id", "0")
 		if sId == "0" {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithAppErr(ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
 		id, err := uuid.Parse(sId)
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrInvalidId)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
 		}
 
-		err = uh.repo.DeleteById(c.Context(), id)
+		// call core service
+		err = uh.service.DeleteById(c.Context(), id)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				New(WithSvcErr(err), WithAppErr(ErrDeleteById)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrDeleteById)).Error())
 		}
 
+		// response
 		c.Status(fiber.StatusNoContent)
 		return nil
 	}
@@ -142,18 +145,19 @@ func (uh UserHandler) HandleDeleteById() func(c *fiber.Ctx) error {
 // HandleGetPage returns page of users
 // HandleGetPage creates handler func that is responsible for getting page of user entities.
 // Response is json representing Page of UserDtos.
-func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
+func (uh Handler) HandleGetPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// parse query params
 		size, err := strconv.Atoi(c.Query("size", "10"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrInvalidPageSize)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidPageSize)).Error())
 		}
 
 		offset, err := strconv.Atoi(c.Query("offset", "0"))
 		if err != nil {
 			return fiber.NewError(fiber.StatusBadRequest,
-				New(WithSvcErr(err), WithAppErr(ErrInvalidPageOffset)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidPageOffset)).Error())
 		}
 
 		sort := resolveSort(c)
@@ -163,22 +167,17 @@ func (uh UserHandler) HandleGetPage() func(c *fiber.Ctx) error {
 			Offset: offset,
 			Sort:   sort,
 		}
-		page, err := uh.repo.GetPage(c.Context(), pageReq)
+
+		// call core service
+		page, err := uh.service.GetPage(c.Context(), pageReq)
 		if err != nil {
 			return fiber.NewError(fiber.StatusInternalServerError,
-				New(WithSvcErr(err), WithAppErr(ErrGetPage)).Error())
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrGetPage)).Error())
 		}
-		return toJson(c, ToPageDto(page))
-	}
-}
 
-func parseRequestBody(c *fiber.Ctx) (*UserDto, error) {
-	var r = new(UserDto)
-	if err := c.BodyParser(r); err != nil {
-		return nil, fiber.NewError(fiber.StatusBadRequest,
-			New(WithSvcErr(err), WithAppErr(ErrParseReqBody)).Error())
+		// response
+		return toJson(c, page)
 	}
-	return r, nil
 }
 
 func toJson(c *fiber.Ctx, t interface{}) error {
