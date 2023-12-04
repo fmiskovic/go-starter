@@ -38,12 +38,17 @@ func (s UserService) SingIn(ctx context.Context, req user.SignInRequest) (*user.
 		return nil, errors.New("invalid credentials")
 	}
 
+	var roles []string
+	for _, role := range u.Roles {
+		roles = append(roles, role.Name)
+	}
+
 	// Create the Claims
 	claims := jwt.MapClaims{
 		"email": u.Email,
 		"sub":   u.ID,
 		"name":  u.FullName,
-		"roles": u.Roles,
+		"roles": roles,
 		"exp":   time.Now().Add(time.Hour * s.authConfig.TokenExp).Unix(),
 		"iat":   time.Now().Unix(),
 	}
@@ -172,7 +177,11 @@ func (s UserService) EnableDisable(ctx context.Context, id uuid.UUID) error {
 }
 
 func (s UserService) createUser(ctx context.Context, req user.CreateRequest) (*user.User, error) {
-	crd := security.NewCredentials(req.Username, req.Password)
+	pwdHash, err := password.HashPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+	crd := security.NewCredentials(req.Username, pwdHash)
 	role := security.NewRole(security.ROLE_USER)
 	u := user.New(
 		user.Email(req.Email),

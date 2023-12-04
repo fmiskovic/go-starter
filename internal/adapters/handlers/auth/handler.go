@@ -25,7 +25,7 @@ func NewHandler(service ports.UserService[uuid.UUID]) Handler {
 }
 
 // HandleSingIn is used to authenticate user.
-func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
+func (h Handler) HandleSignIn() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse request body
 		var req = new(user.SignInRequest)
@@ -47,12 +47,13 @@ func (h Handler) HandleSignIn() func(c *fiber.Ctx) error {
 		}
 
 		// response
+		c.Set(fiber.HeaderAuthorization, "Bearer "+res.Token)
 		return c.JSON(res)
 	}
 }
 
 // HandleSignUp is used to register new user.
-func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
+func (h Handler) HandleSignUp() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse request body
 		var req = new(user.CreateRequest)
@@ -69,8 +70,8 @@ func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 		// call core service
 		res, err := h.service.SingUp(c.Context(), *req)
 		if err != nil {
-			return fiber.NewError(fiber.StatusBadRequest,
-				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidAuthReq)).Error())
+			return fiber.NewError(fiber.StatusUnprocessableEntity,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrSignUp)).Error())
 		}
 
 		// response
@@ -79,7 +80,8 @@ func (h Handler) HandleSignUp() func(c *fiber.Ctx) error {
 	}
 }
 
-func (h Handler) HandleChangePassword() func(c *fiber.Ctx) error {
+// HandleChangePassword change user password.
+func (h Handler) HandleChangePassword() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse request body
 		var req = new(user.ChangePasswordRequest)
@@ -104,7 +106,8 @@ func (h Handler) HandleChangePassword() func(c *fiber.Ctx) error {
 	}
 }
 
-func (h Handler) HandleConfirmEmail() func(c *fiber.Ctx) error {
+// HandleConfirmEmail confirms user email address.
+func (h Handler) HandleConfirmEmail() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse query params
 		sId := c.Params("id", "0")
@@ -130,6 +133,15 @@ func (h Handler) HandleConfirmEmail() func(c *fiber.Ctx) error {
 
 		// response
 		c.Status(fiber.StatusNoContent)
+		return nil
+	}
+}
+
+// HandleSignOut logout user.
+func (h Handler) HandleSignOut() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		c.Locals("user", nil)
+		c.Set(fiber.HeaderAuthorization, "Bearer ")
 		return nil
 	}
 }

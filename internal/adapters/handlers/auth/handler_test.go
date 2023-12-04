@@ -135,6 +135,12 @@ func TestHandleSignUp(t *testing.T) {
 			wantCode: 400,
 			verify:   func(t *testing.T, res *http.Response) {},
 		},
+		{
+			name:     "given existing username should return 422",
+			reqBody:  []byte("{\"username\":\"test1\",\"password\":\"Password1234\",\"email\":\"test1@test.com\"}"),
+			wantCode: 422,
+			verify:   func(t *testing.T, res *http.Response) {},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

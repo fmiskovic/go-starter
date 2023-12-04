@@ -23,8 +23,9 @@ type SignInRequest struct {
 }
 
 type ChangePasswordRequest struct {
-	ID       string `json:"id"`
-	Password string `validate:"required,min=8,max=72" json:"password"`
+	ID          string `json:"id"`
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `validate:"required,min=8,max=72" json:"newPassword"`
 }
 
 type ConfirmEmailRequest struct {

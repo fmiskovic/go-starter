@@ -14,6 +14,7 @@ var (
 	ErrInvalidPageOffset = errors.New("invalid page offset number")
 	ErrGetPage           = errors.New("failed to get entities page")
 	ErrInvalidAuthReq    = errors.New("invalid username or password")
+	ErrSignUp            = errors.New("failed to register user")
 )
 
 // ApiError represents a custom error struct that contains optionally service and application error.

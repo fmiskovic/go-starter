@@ -11,6 +11,68 @@
       }
     ],
     "paths": {
+      "/auth/login": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "SingIn as with user credentials",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User successfully authenticated",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/SignInResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        }
+      },
+      "/auth/register": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Register new user",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User successfully registered",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/SignUpResponse"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request"
+            }
+          }
+        }
+      },
       "/api/v1/user": {
         "get": {
           "tags": ["User"],
@@ -214,6 +276,110 @@
         }
       },
       "schemas": {
+        "SignInRequest":{
+          "type": "object",
+          "properties":{
+            "username": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string",
+              "format": "password"
+            }
+          }
+        },
+        "SignInResponse":{
+          "type":"object",
+          "properties":{
+            "token":{
+              "type":"string"
+            }
+          }
+        },
+        "SignUpResponse":{
+          "type": "object",
+          "properties":{
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "CreateRequest":{
+          "type": "object",
+          "properties":{
+            "username": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string",
+              "format": "password"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "fullname": {
+              "type": "string"
+            },
+            "dateOfBirth": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "location": {
+              "type": "string"
+            },
+            "gender": {
+              "$ref": "#/components/schemas/Gender"
+            }
+          },
+          "required": ["username", "password", "email"]
+        },
+        "UpdateRequest":{
+          "type": "object",
+          "properties":{
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "fullname": {
+              "type": "string"
+            },
+            "dateOfBirth": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "location": {
+              "type": "string"
+            },
+            "gender": {
+              "$ref": "#/components/schemas/Gender"
+            }
+          },
+          "required": ["id", "email"]
+        },
+        "ChangePasswordRequest":{
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "oldPassword": {
+              "type": "string",
+              "format": "password"
+            },
+            "newPassword": {
+              "type": "string",
+              "format": "password"
+            }
+          },
+          "required": ["id", "oldPassword", "newPassword"]
+        },
         "UserDto": {
           "type": "object",
           "properties": {

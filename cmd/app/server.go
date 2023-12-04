@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
-	"github.com/fmiskovic/go-starter/internal/adapters/handlers"
 
 	"github.com/fmiskovic/go-starter/internal/core/configs"
 
@@ -33,7 +32,7 @@ func newServer(config ServerConfig) Server {
 	if err != nil {
 		log.Fatal(err)
 	}
-	app := initApp(bunDb, configs.AuthConfig{})
+	app := initApp(bunDb, config.AuthConfig)
 	return Server{
 		Config: config,
 		Db:     bunDb,
@@ -68,7 +67,6 @@ func initDb(config ServerConfig) (*bun.DB, error) {
 
 func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 	app := fiber.New(fiber.Config{
-		ErrorHandler:          handlers.ErrorHandler,
 		DisableStartupMessage: true,
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
@@ -78,6 +76,8 @@ func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 
 	// init swagger
 	router.initSwaggerRouters()
+	// init auth routers
+	router.initAuthRouters()
 	// init user api handlers
 	router.initUserRouters()
 	// init static handlers

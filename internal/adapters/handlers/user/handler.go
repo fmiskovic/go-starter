@@ -29,7 +29,7 @@ func NewHandler(service ports.UserService[uuid.UUID]) Handler {
 
 // HandleCreate creates handler func that is responsible for persisting new user entity.
 // Response is UserDto json.
-func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
+func (uh Handler) HandleCreate() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse request body
 		req := new(user.CreateRequest)
@@ -58,7 +58,7 @@ func (uh Handler) HandleCreate() func(c *fiber.Ctx) error {
 
 // HandleUpdate creates handler func that is responsible for updating existing user entity.
 // Response is UserDto json.
-func (uh Handler) HandleUpdate() func(c *fiber.Ctx) error {
+func (uh Handler) HandleUpdate() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse request body
 		req := new(user.UpdateRequest)
@@ -86,7 +86,7 @@ func (uh Handler) HandleUpdate() func(c *fiber.Ctx) error {
 
 // HandleGetById creates handler func that is responsible for getting existing user entity by its ID.
 // Response is UserDto json.
-func (uh Handler) HandleGetById() func(c *fiber.Ctx) error {
+func (uh Handler) HandleGetById() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse query params
 		sId := c.Params("id", "0")
@@ -114,7 +114,7 @@ func (uh Handler) HandleGetById() func(c *fiber.Ctx) error {
 }
 
 // HandleDeleteById creates handler func that is responsible for deleting existing user entity by its ID.
-func (uh Handler) HandleDeleteById() func(c *fiber.Ctx) error {
+func (uh Handler) HandleDeleteById() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse query params
 		sId := c.Params("id", "0")
@@ -145,7 +145,7 @@ func (uh Handler) HandleDeleteById() func(c *fiber.Ctx) error {
 // HandleGetPage returns page of users
 // HandleGetPage creates handler func that is responsible for getting page of user entities.
 // Response is json representing Page of UserDtos.
-func (uh Handler) HandleGetPage() func(c *fiber.Ctx) error {
+func (uh Handler) HandleGetPage() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// parse query params
 		size, err := strconv.Atoi(c.Query("size", "10"))
