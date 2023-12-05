@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sync"
 	"time"
 
 	apiErr "github.com/fmiskovic/go-starter/internal/core/error"
@@ -19,16 +20,17 @@ import (
 
 // UserRepo is implementation of ports.UserRepo interface.
 type UserRepo struct {
-	db *bun.DB
+	db    *bun.DB
+	mutex sync.Mutex
 }
 
 // NewUserRepo instantiate new UserRepo.
-func NewUserRepo(db *bun.DB) UserRepo {
-	return UserRepo{db}
+func NewUserRepo(db *bun.DB) *UserRepo {
+	return &UserRepo{db, sync.Mutex{}}
 }
 
 // GetById returns user by specified id.
-func (repo UserRepo) GetById(ctx context.Context, id uuid.UUID) (*user.User, error) {
+func (repo *UserRepo) GetById(ctx context.Context, id uuid.UUID) (*user.User, error) {
 	var u = &user.User{}
 
 	err := repo.db.NewSelect().Model(u).Where("? = ?", bun.Ident("id"), id).Scan(ctx)
@@ -40,7 +42,7 @@ func (repo UserRepo) GetById(ctx context.Context, id uuid.UUID) (*user.User, err
 }
 
 // Create persists new user entity.
-func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
+func (repo *UserRepo) Create(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ErrNilEntity
 	}
@@ -67,7 +69,7 @@ func (repo UserRepo) Create(ctx context.Context, u *user.User) error {
 }
 
 // Update existing persisted user entity.
-func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
+func (repo *UserRepo) Update(ctx context.Context, u *user.User) error {
 	if u == nil {
 		return ErrNilEntity
 	}
@@ -82,7 +84,7 @@ func (repo UserRepo) Update(ctx context.Context, u *user.User) error {
 }
 
 // DeleteById remove user entity by specified id.
-func (repo UserRepo) DeleteById(ctx context.Context, id uuid.UUID) error {
+func (repo *UserRepo) DeleteById(ctx context.Context, id uuid.UUID) error {
 	if _, err := repo.db.NewDelete().Model(new(user.User)).Where("id = ?", id).Exec(ctx); err != nil {
 		return err
 	}
@@ -91,7 +93,7 @@ func (repo UserRepo) DeleteById(ctx context.Context, id uuid.UUID) error {
 }
 
 // GetPage respond with a page of users.
-func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Page[user.User], error) {
+func (repo *UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Page[user.User], error) {
 	var users []user.User
 	count, err := repo.db.
 		NewSelect().
@@ -114,7 +116,7 @@ func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Pag
 }
 
 // GetByUsername returns user by username.
-func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.User, error) {
+func (repo *UserRepo) GetByUsername(ctx context.Context, username string) (*user.User, error) {
 	var u = new(user.User)
 
 	err := repo.db.NewSelect().
@@ -133,8 +135,11 @@ func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.
 }
 
 // ChangePassword updates users password.
-func (repo UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
+func (repo *UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		repo.mutex.Lock()
+		defer repo.mutex.Unlock()
+
 		var u = new(user.User)
 
 		err := tx.NewSelect().
@@ -171,8 +176,11 @@ func (repo UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswor
 }
 
 // AddRoles to existing user.
-func (repo UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
+func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		repo.mutex.Lock()
+		defer repo.mutex.Unlock()
+
 		exists, err := tx.NewSelect().
 			Model((*user.User)(nil)).
 			Where("? = ?", bun.Ident("id"), id).
@@ -208,7 +216,7 @@ func (repo UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.U
 }
 
 // RemoveRoles from existing user.
-func (repo UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
+func (repo *UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		exists, err := tx.NewSelect().
 			Model((*user.User)(nil)).
@@ -237,8 +245,11 @@ func (repo UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uui
 }
 
 // EnableDisable enables user if it is disabled or vice versa.
-func (repo UserRepo) EnableDisable(ctx context.Context, id uuid.UUID) error {
+func (repo *UserRepo) EnableDisable(ctx context.Context, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		repo.mutex.Lock()
+		defer repo.mutex.Unlock()
+
 		var u = &user.User{}
 
 		if err := tx.NewSelect().Model(u).Column("enabled").Where("? = ?", bun.Ident("id"), id).Scan(ctx); err != nil {
