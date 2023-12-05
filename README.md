@@ -62,11 +62,13 @@ Look at [Makefile](https://github.com/fmiskovic/go-starter/blob/main/Makefile)
 - `AUTH_JWT_SECRET` - default is ***secret***
 
 ### TODO list
+- Email confirmation (when registers, user gets email to confirm the address, or the link expires)
 - Add AlpineJS entity handling (CRUD operations)
 - Users view
-- Email notifications
+- Contact Us view
 - Push notifications
 - i18n
+- OAtuh
 
 ## Contributing
 

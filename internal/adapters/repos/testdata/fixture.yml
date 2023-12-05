@@ -26,7 +26,7 @@
   rows:
     - id: 210cea28-b2b0-4051-9eb6-9a99e451af01
       username: username1
-      password_hash: password1
+      password_hash: $2a$14$/uuEnoIH.v4TKiIp8x1pze58QvmA.rKpmLLrQ0/8Y910SaTo8UR1K
       created_at: '{{ now }}'
       updated_at: '{{ now }}'
       user_id: 220cea28-b2b0-4051-9eb6-9a99e451af01

@@ -8,6 +8,7 @@ import (
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
+	"github.com/fmiskovic/go-starter/internal/utils/password"
 	"github.com/fmiskovic/go-starter/internal/utils/testx"
 	"github.com/google/uuid"
 	"github.com/matryer/is"
@@ -363,6 +364,221 @@ func TestUserRepo_GetByUsername(t *testing.T) {
 			}
 			if got != nil && got.Credentials != nil && got.Credentials.Username != tt.args.username {
 				t.Errorf("UserRepo.GetByUsername() = got username %v, want username %v", got.Credentials.Username, tt.args.username)
+			}
+		})
+	}
+}
+
+func TestUserRepo_ChangePassword(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	assert := is.New(t)
+
+	// setup db
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
+	defer tearDown(t)
+
+	repo := NewUserRepo(bunDb)
+
+	type args struct {
+		req *user.ChangePasswordRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		verify  func(t *testing.T, username string)
+		wantErr bool
+	}{
+		{
+			name: "given valid creadentials should change passwod",
+			args: args{&user.ChangePasswordRequest{Username: "username1", OldPassword: "password1", NewPassword: "Password1234!"}},
+			verify: func(t *testing.T, username string) {
+				u, err := repo.GetByUsername(ctx, "username1")
+				assert.NoErr(err)
+				assert.True(password.CheckPasswordHash("Password1234!", u.Credentials.Password))
+			},
+			wantErr: false,
+		},
+		{
+			name:    "given invalid creadentials should return error",
+			args:    args{&user.ChangePasswordRequest{Username: "username1", OldPassword: "password11", NewPassword: "Password1234!"}},
+			verify:  func(t *testing.T, username string) {},
+			wantErr: true,
+		},
+		{
+			name:    "given invalid username should return error",
+			args:    args{&user.ChangePasswordRequest{Username: "username11", OldPassword: "password1", NewPassword: "Password1234!"}},
+			verify:  func(t *testing.T, username string) {},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := repo.ChangePassword(ctx, tt.args.req); (err != nil) != tt.wantErr {
+				t.Errorf("UserRepo.ChangePassword() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			tt.verify(t, tt.args.req.Username)
+		})
+	}
+}
+
+func TestUserRepo_AddRoles(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	// setup db
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
+	defer tearDown(t)
+
+	repo := NewUserRepo(bunDb)
+
+	type args struct {
+		roleNames []string
+		id        uuid.UUID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "given valid inputs should add roles to the user",
+			args: args{
+				roleNames: []string{security.ROLE_ADMIN, security.ROLE_USER},
+				id:        uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "given invalid user id should return error",
+			args: args{
+				roleNames: []string{security.ROLE_ADMIN, security.ROLE_USER},
+				id:        uuid.MustParse("333cea28-b2b0-4051-9eb6-9a99e451af03"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "given empty roles should not return an error",
+			args: args{
+				roleNames: []string{},
+				id:        uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := repo.AddRoles(ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
+				t.Errorf("UserRepo.AddRoles() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUserRepo_RemoveRoles(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	// setup db
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
+	defer tearDown(t)
+
+	repo := NewUserRepo(bunDb)
+
+	type args struct {
+		roleNames []string
+		id        uuid.UUID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "given valid inputs should add roles to the user",
+			args: args{
+				roleNames: []string{security.ROLE_ADMIN, security.ROLE_USER},
+				id:        uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af01"),
+			},
+			wantErr: false,
+		},
+		{
+			name: "given invalid user id should return error",
+			args: args{
+				roleNames: []string{security.ROLE_ADMIN, security.ROLE_USER},
+				id:        uuid.MustParse("333cea28-b2b0-4051-9eb6-9a99e451af03"),
+			},
+			wantErr: true,
+		},
+		{
+			name: "given empty roles should not return an error",
+			args: args{
+				roleNames: []string{},
+				id:        uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af01"),
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := repo.RemoveRoles(ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
+				t.Errorf("UserRepo.RemoveRoles() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestUserRepo_EnableDisable(t *testing.T) {
+	// skip in short mode
+	if testing.Short() {
+		return
+	}
+
+	assert := is.New(t)
+
+	// setup db
+	tearDown, ctx, bunDb := testx.SetUpDb(t)
+	defer tearDown(t)
+
+	repo := NewUserRepo(bunDb)
+
+	type args struct {
+		id uuid.UUID
+	}
+	tests := []struct {
+		name    string
+		args    args
+		verify  func(t *testing.T, id uuid.UUID)
+		wantErr bool
+	}{
+		{
+			name: "given valid user id should enable user",
+			args: args{id: uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af01")},
+			verify: func(t *testing.T, id uuid.UUID) {
+				u, err := repo.GetById(ctx, id)
+				assert.NoErr(err)
+				assert.True(u.Enabled)
+			},
+			wantErr: false,
+		},
+		{
+			name:    "given invalid user id should return error",
+			args:    args{id: uuid.MustParse("333cea28-b2b0-4051-9eb6-9a99e451af01")},
+			verify:  func(t *testing.T, id uuid.UUID) {},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := repo.EnableDisable(ctx, tt.args.id); (err != nil) != tt.wantErr {
+				t.Errorf("UserRepo.EnableDisable() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

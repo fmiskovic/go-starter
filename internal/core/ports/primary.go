@@ -17,6 +17,7 @@ type UserService[ID any] interface {
 	DeleteById(ctx context.Context, id ID) error
 	GetPage(ctx context.Context, pagabale domain.Pageable) (*domain.Page[user.Dto], error)
 	AddRoles(ctx context.Context, roles []string, id ID) error
+	RemoveRoles(ctx context.Context, roles []string, id ID) error
 	EnableDisable(ctx context.Context, id ID) error
 	ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error
 }

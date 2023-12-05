@@ -2,6 +2,7 @@ package security
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/google/uuid"
@@ -25,5 +26,13 @@ func NewCredentials(username, password string) *Credentials {
 		}
 	}()
 
-	return &Credentials{Entity: domain.Entity{ID: uuid.New()}, Username: username, Password: password}
+	return &Credentials{
+		Entity: domain.Entity{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Username: username,
+		Password: password,
+	}
 }

@@ -23,7 +23,7 @@ type SignInRequest struct {
 }
 
 type ChangePasswordRequest struct {
-	ID          string `json:"id"`
+	Username    string `json:"username"`
 	OldPassword string `json:"oldPassword"`
 	NewPassword string `validate:"required,min=8,max=72" json:"newPassword"`
 }

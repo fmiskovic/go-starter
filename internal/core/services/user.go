@@ -140,31 +140,22 @@ func (s UserService) GetPage(ctx context.Context, pagabale domain.Pageable) (*do
 
 // AddRoles appends user roles.
 func (s UserService) AddRoles(ctx context.Context, roles []string, id uuid.UUID) error {
-	u, err := s.repo.GetById(ctx, id)
-	if err != nil {
-		return err
-	}
+	return s.repo.AddRoles(ctx, roles, id)
+}
 
-	// TODO: implement
-	for _, name := range roles {
-		role := security.NewRole(name)
-		role.UserID = u.ID
-		u.Roles = append(u.Roles, role)
-	}
-
-	return nil
+// AddRoles appends user roles.
+func (s UserService) RemoveRoles(ctx context.Context, roles []string, id uuid.UUID) error {
+	return s.repo.RemoveRoles(ctx, roles, id)
 }
 
 // ChangePassword updates user password.
 func (s UserService) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
-	// TODO: implement
-	return nil
+	return s.repo.ChangePassword(ctx, req)
 }
 
 // EnableDisable is for admin usage only, to enable user if disabled and vice versa.
 func (s UserService) EnableDisable(ctx context.Context, id uuid.UUID) error {
-	// TODO: implement
-	return nil
+	return s.repo.EnableDisable(ctx, id)
 }
 
 func (s UserService) createUser(ctx context.Context, req *user.CreateRequest) (*user.User, error) {

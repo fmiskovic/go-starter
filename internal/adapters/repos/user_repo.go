@@ -3,10 +3,15 @@ package repos
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
+	apiErr "github.com/fmiskovic/go-starter/internal/core/error"
+
 	"github.com/fmiskovic/go-starter/internal/core/domain"
+	"github.com/fmiskovic/go-starter/internal/core/domain/security"
 	"github.com/fmiskovic/go-starter/internal/core/domain/user"
+	"github.com/fmiskovic/go-starter/internal/utils/password"
 	"github.com/google/uuid"
 
 	"github.com/uptrace/bun"
@@ -108,6 +113,7 @@ func (repo UserRepo) GetPage(ctx context.Context, p domain.Pageable) (domain.Pag
 	}, err
 }
 
+// GetByUsername returns user by username.
 func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.User, error) {
 	var u = new(user.User)
 
@@ -124,4 +130,127 @@ func (repo UserRepo) GetByUsername(ctx context.Context, username string) (*user.
 	}
 
 	return u, nil
+}
+
+// ChangePassword updates users password.
+func (repo UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		var u = new(user.User)
+
+		err := tx.NewSelect().
+			Model(u).
+			Relation("Credentials", func(sq *bun.SelectQuery) *bun.SelectQuery {
+				return sq.Where("username = ?", req.Username)
+			}).
+			Scan(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		if !password.CheckPasswordHash(req.OldPassword, u.Credentials.Password) {
+			return errors.New("invalid old password")
+		}
+
+		newPwd, err := password.HashPassword(req.NewPassword)
+		if err != nil {
+			return err
+		}
+
+		crd := u.Credentials
+		crd.Password = newPwd
+		crd.UpdatedAt = time.Now()
+		u.UpdatedAt = crd.UpdatedAt
+
+		if _, err := tx.NewUpdate().Model(crd).OmitZero().Where("user_id = ?", u.ID).Exec(ctx); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// AddRoles to existing user.
+func (repo UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		exists, err := tx.NewSelect().
+			Model((*user.User)(nil)).
+			Where("? = ?", bun.Ident("id"), id).
+			Exists(ctx)
+
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return apiErr.ErrInvalidId
+		}
+
+		roles := []*security.Role{}
+		for _, name := range roleNames {
+			role := security.NewRole(name)
+			role.UserID = id
+			roles = append(roles, role)
+		}
+
+		if len(roles) > 0 {
+			if _, err := tx.NewInsert().Model(&roles).Exec(ctx); err != nil {
+				return err
+			}
+
+			u := &user.User{Entity: domain.Entity{ID: id, UpdatedAt: time.Now()}}
+			if _, err := tx.NewUpdate().Model((u)).OmitZero().Where("? = ?", bun.Ident("id"), id).Exec(ctx); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+}
+
+// RemoveRoles from existing user.
+func (repo UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		exists, err := tx.NewSelect().
+			Model((*user.User)(nil)).
+			Where("? = ?", bun.Ident("id"), id).
+			Exists(ctx)
+
+		if err != nil {
+			return err
+		}
+		if !exists {
+			return apiErr.ErrInvalidId
+		}
+
+		_, err = tx.NewDelete().
+			Model(&security.Role{}).
+			Where("user_id = ?", id).
+			Where("name IN (?)", bun.In(roleNames)).
+			Exec(ctx)
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+// EnableDisable enables user if it is disabled or vice versa.
+func (repo UserRepo) EnableDisable(ctx context.Context, id uuid.UUID) error {
+	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		var u = &user.User{}
+
+		if err := tx.NewSelect().Model(u).Column("enabled").Where("? = ?", bun.Ident("id"), id).Scan(ctx); err != nil {
+			return err
+		}
+
+		u.UpdatedAt = time.Now()
+		u.Enabled = !u.Enabled
+
+		if _, err := tx.NewUpdate().Model(u).OmitZero().Where("id = ?", id).Exec(ctx); err != nil {
+			return err
+		}
+		return nil
+	})
 }

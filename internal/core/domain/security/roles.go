@@ -2,6 +2,7 @@ package security
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/fmiskovic/go-starter/internal/core/domain"
 	"github.com/google/uuid"
@@ -28,7 +29,14 @@ func NewRole(name string) *Role {
 			slog.Warn("Recovered in user.New() when uuid.New() panic", r)
 		}
 	}()
-	return &Role{Entity: domain.Entity{ID: uuid.New()}, Name: name}
+	return &Role{
+		Entity: domain.Entity{
+			ID:        uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		},
+		Name: name,
+	}
 }
 
 type RoleOption func(*Role)
