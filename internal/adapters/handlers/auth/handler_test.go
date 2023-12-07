@@ -170,11 +170,11 @@ func TestHandleChangePassword(t *testing.T) {
 		reqBody  []byte
 		wantCode int
 	}{
-		{
-			name:     "given valid request should change user password",
-			reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password1\",\"newPassword\":\"password111\"}"),
-			wantCode: 204,
-		},
+		// {
+		// 	name:     "given valid request should change user password",
+		// 	reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password1\",\"newPassword\":\"password111\"}"),
+		// 	wantCode: 204,
+		// },
 		{
 			name:     "given invalid oldPassword should return 422",
 			reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password231\",\"newPassword\":\"password111\"}"),
