@@ -43,3 +43,9 @@ type UpdateRequest struct {
 	ID string `json:"id"`
 	Request
 }
+
+type RolesRequest struct {
+	ID    string   `json:"id"`
+	Roles []string `json:"roles"`
+	Cmd   string   `json:"command"` // ADD or DELETE
+}

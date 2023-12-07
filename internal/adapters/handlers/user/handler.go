@@ -180,6 +180,75 @@ func (uh Handler) HandleGetPage() fiber.Handler {
 	}
 }
 
+// HandleUserRoles adds or removes user roles.
+func (uh Handler) HandleUserRoles() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		// parse request body
+		req := new(user.RolesRequest)
+		if err := c.BodyParser(req); err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrParseReqBody)).Error())
+		}
+
+		// validate request
+		if errs := uh.validator.Validate(req); len(errs) > 0 {
+			return fiber.NewError(fiber.StatusBadRequest, strings.Join(errs, " and "))
+		}
+
+		id, err := uuid.Parse(req.ID)
+		if err != nil {
+			return fiber.NewError(fiber.StatusUnprocessableEntity,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
+		}
+
+		// call core service
+		switch req.Cmd {
+		case "ADD":
+			err := uh.service.AddRoles(c.Context(), req.Roles, id)
+			if err != nil {
+				return fiber.NewError(fiber.StatusUnprocessableEntity,
+					apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityUpdate)).Error())
+			}
+			c.Status(fiber.StatusCreated)
+		case "DELETE":
+			err := uh.service.RemoveRoles(c.Context(), req.Roles, id)
+			if err != nil {
+				return fiber.NewError(fiber.StatusUnprocessableEntity,
+					apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrEntityDelete)).Error())
+			}
+			c.Status(fiber.StatusNoContent)
+		default:
+			return fiber.NewError(fiber.StatusBadRequest, "invalid command, it must be ADD or DELETE")
+		}
+
+		// response
+		return nil
+	}
+}
+
+// HandleEnableDisable enables user if disabled and vice versa.
+func (uh Handler) HandleEnableDisable() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		sId := c.Params("id", "0")
+		if sId == "0" {
+			return fiber.NewError(fiber.StatusBadRequest,
+				apiErr.New(apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
+		}
+
+		id, err := uuid.Parse(sId)
+		if err != nil {
+			return fiber.NewError(fiber.StatusBadRequest,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
+		}
+
+		if err := uh.service.EnableDisable(c.Context(), id); err != nil {
+			return fiber.NewError(fiber.StatusUnprocessableEntity,
+				apiErr.New(apiErr.WithSvcErr(err), apiErr.WithAppErr(apiErr.ErrInvalidId)).Error())
+		}
+		return nil
+	}
+}
+
 func toJson(c *fiber.Ctx, t interface{}) error {
 	if err := c.JSON(t); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())

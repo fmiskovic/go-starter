@@ -6,6 +6,7 @@ var (
 	ErrParseReqBody      = errors.New("failed to parse request body")
 	ErrEntityCreate      = errors.New("failed to create entity")
 	ErrEntityUpdate      = errors.New("failed to update entity")
+	ErrEntityDelete      = errors.New("failed to delete entity")
 	ErrGetById           = errors.New("failed to get entity by id")
 	ErrInvalidId         = errors.New("invalid id")
 	ErrInvalidCode       = errors.New("invalid code")

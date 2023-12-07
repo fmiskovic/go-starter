@@ -84,6 +84,33 @@
           }
         }
       },
+      "/auth/password": {
+        "post": {
+          "tags": ["Auth"],
+          "summary": "Change user password",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePasswordRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "204": {
+              "description": "Password successfully updated"
+            },
+            "400": {
+              "description": "Bad request"
+            },
+            "422": {
+              "description": "Unprocessable Entity"
+            }
+          }
+        }
+      },
       "/api/v1/user": {
         "get": {
           "tags": ["User"],
@@ -276,6 +303,75 @@
             }
           }
         }
+      },
+      "/api/v1/user/roles": {
+        "post": {
+          "tags": ["User"],
+          "summary": "Manage user roles",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RolesRequest"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "User roles successfully added"
+            },
+            "204": {
+              "description": "User roles successfully removed"
+            },
+            "400": {
+              "description": "Bad request"
+            },
+            "422": {
+              "description": "Unprocessable Entity"
+            }
+          }
+        }
+      },
+      "/api/v1/user/{id}/enabledisable": {
+        "post": {
+          "tags": ["User"],
+          "summary": "Enable/Disable user",
+          "security": [
+            {
+              "JWTAuth": []
+            }
+          ],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "description": "ID of the user to be retrieved"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User is enabled or disabled successfully"
+            },
+            "400": {
+              "description": "Bad request"
+            },
+            "422": {
+              "description": "Unprocessable Entity"
+            }
+          }
+        }
       }
     },
     "components": {
@@ -390,6 +486,27 @@
             }
           },
           "required": ["id", "oldPassword", "newPassword"]
+        },
+        "RolesRequest":{
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["ROLE_ADMIN", "ROLE_USER"]
+              }
+            },
+            "command": {
+              "type": "string",
+              "enum": ["ADD", "DELETE"]
+            }
+          },
+          "required": ["id", "roles", "command"]
         },
         "UserDto": {
           "type": "object",

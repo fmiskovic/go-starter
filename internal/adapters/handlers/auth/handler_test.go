@@ -154,3 +154,56 @@ func TestHandleSignUp(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleChangePassword(t *testing.T) {
+	assert := is.New(t)
+
+	bunDb, app := testx.SetUpServer(t)
+
+	repo := repos.NewUserRepo(bunDb)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
+	app.Post("/auth/password", handler.HandleChangePassword())
+
+	tests := []struct {
+		name     string
+		reqBody  []byte
+		wantCode int
+	}{
+		{
+			name:     "given valid request should change user password",
+			reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password1\",\"newPassword\":\"password111\"}"),
+			wantCode: 204,
+		},
+		{
+			name:     "given invalid oldPassword should return 422",
+			reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password231\",\"newPassword\":\"password111\"}"),
+			wantCode: 422,
+		},
+		{
+			name:     "given invalid newPassword should return 400",
+			reqBody:  []byte("{\"username\":\"username1\",\"oldPassword\":\"password1\",\"newPassword\":\"pass\"}"),
+			wantCode: 400,
+		},
+		{
+			name:     "given invalid username should return 422",
+			reqBody:  []byte("{\"username\":\"username1111\",\"oldPassword\":\"password1\",\"newPassword\":\"password111\"}"),
+			wantCode: 422,
+		},
+		{
+			name:     "given empty reques should return 400",
+			reqBody:  []byte(""),
+			wantCode: 400,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/auth/password", bytes.NewReader(tt.reqBody))
+			req.Header.Add("Content-Type", "application/json")
+
+			res, err := app.Test(req, 30000)
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+		})
+	}
+}

@@ -218,6 +218,9 @@ func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.
 // RemoveRoles from existing user.
 func (repo *UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		repo.mutex.Lock()
+		defer repo.mutex.Unlock()
+
 		exists, err := tx.NewSelect().
 			Model((*user.User)(nil)).
 			Where("? = ?", bun.Ident("id"), id).
@@ -230,14 +233,21 @@ func (repo *UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uu
 			return apiErr.ErrInvalidId
 		}
 
-		_, err = tx.NewDelete().
-			Model(&security.Role{}).
-			Where("user_id = ?", id).
-			Where("name IN (?)", bun.In(roleNames)).
-			Exec(ctx)
+		if len(roleNames) > 0 {
+			_, err = tx.NewDelete().
+				Model(&security.Role{}).
+				Where("user_id = ?", id).
+				Where("name IN (?)", bun.In(roleNames)).
+				Exec(ctx)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
+
+			u := &user.User{Entity: domain.Entity{ID: id, UpdatedAt: time.Now()}}
+			if _, err := tx.NewUpdate().Model((u)).OmitZero().Where("? = ?", bun.Ident("id"), id).Exec(ctx); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -259,7 +269,7 @@ func (repo *UserRepo) EnableDisable(ctx context.Context, id uuid.UUID) error {
 		u.UpdatedAt = time.Now()
 		u.Enabled = !u.Enabled
 
-		if _, err := tx.NewUpdate().Model(u).OmitZero().Where("id = ?", id).Exec(ctx); err != nil {
+		if _, err := tx.NewUpdate().Model(u).Column("enabled", "updated_at").Where("id = ?", id).Exec(ctx); err != nil {
 			return err
 		}
 		return nil

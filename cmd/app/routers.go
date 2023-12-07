@@ -40,6 +40,8 @@ func (r Router) initUserRouters() {
 	userGroup.Delete("/:id", handler.HandleDeleteById())
 	userGroup.Post("/", handler.HandleCreate())
 	userGroup.Put("/", handler.HandleUpdate())
+	userGroup.Post("/roles", handler.HandleUserRoles())
+	userGroup.Post("/:id/enabledisable", handler.HandleEnableDisable())
 }
 
 func (r Router) initAuthRouters() {

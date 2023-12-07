@@ -371,3 +371,119 @@ func TestHandleGetPage(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleUserRoles(t *testing.T) {
+	assert := is.New(t)
+
+	bunDb, app := testx.SetUpServer(t)
+
+	repo := repos.NewUserRepo(bunDb)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
+	app.Post("/user/roles", handler.HandleUserRoles())
+
+	tests := []struct {
+		name     string
+		reqBody  []byte
+		wantCode int
+	}{
+		{
+			name:     "given valid add request should return 201",
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af02\",\"command\":\"ADD\",\"roles\":[\"ROLE_ADMIN\"]}"),
+			wantCode: 201,
+		},
+		{
+			name:     "given valid delete request should return 204",
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af02\",\"command\":\"DELETE\",\"roles\":[\"ROLE_ADMIN\"]}"),
+			wantCode: 204,
+		},
+		{
+			name:     "given empty request should return 400",
+			reqBody:  []byte(""),
+			wantCode: 400,
+		},
+		{
+			name:     "given invalid command should return 400",
+			reqBody:  []byte("{\"id\":\"220cea28-b2b0-4051-9eb6-9a99e451af02\",\"command\":\"INVALID\",\"roles\":[\"ROLE_ADMIN\"]}"),
+			wantCode: 400,
+		},
+		{
+			name:     "given invalid id should return 422",
+			reqBody:  []byte("{\"id\":\"invalid\",\"command\":\"ADD\",\"roles\":[\"ROLE_ADMIN\"]}"),
+			wantCode: 422,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/user/roles", bytes.NewReader(tt.reqBody))
+			req.Header.Add("Content-Type", "application/json")
+
+			res, err := app.Test(req, 20000)
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+		})
+	}
+}
+
+func TestHandleEnableDisable(t *testing.T) {
+	assert := is.New(t)
+
+	bunDb, app := testx.SetUpServer(t)
+
+	repo := repos.NewUserRepo(bunDb)
+	service := services.NewUserService(repo, configs.NewAuthConfig())
+	handler := NewHandler(service)
+	app.Post("/user/:id/enabledisable", handler.HandleEnableDisable())
+
+	type args struct {
+		id string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		verify   func(t *testing.T, id string)
+		wantCode int
+	}{
+		{
+			name: "given valid id should enable user",
+			args: args{id: "220cea28-b2b0-4051-9eb6-9a99e451af02"},
+			verify: func(t *testing.T, id string) {
+				u, err := repo.GetById(context.Background(), uuid.MustParse(id))
+				if err != nil {
+					t.Errorf("failed to get user by id, error: %s", err.Error())
+				}
+				assert.True(u.Enabled)
+			},
+			wantCode: 200,
+		},
+		{
+			name: "given valid id should disable user",
+			args: args{id: "220cea28-b2b0-4051-9eb6-9a99e451af02"},
+			verify: func(t *testing.T, id string) {
+				u, err := repo.GetById(context.Background(), uuid.MustParse(id))
+				if err != nil {
+					t.Errorf("failed to get user by id, error: %s", err.Error())
+				}
+				assert.True(!u.Enabled)
+			},
+			wantCode: 200,
+		},
+		{
+			name:     "given invalid id should return 422",
+			args:     args{id: "333cea28-b2b0-4051-9eb6-9a99e451af02"},
+			verify:   func(t *testing.T, id string) {},
+			wantCode: 422,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", fmt.Sprintf("/user/%s/enabledisable", tt.args.id), nil)
+			req.Header.Add("Content-Type", "application/json")
+
+			res, err := app.Test(req, 20000)
+			assert.NoErr(err)
+			assert.Equal(res.StatusCode, tt.wantCode)
+			tt.verify(t, tt.args.id)
+		})
+	}
+}
