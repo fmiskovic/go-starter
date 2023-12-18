@@ -4,11 +4,9 @@ import (
 	"database/sql"
 	"log/slog"
 
-	"github.com/fmiskovic/go-starter/internal/utils"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
-	"github.com/uptrace/bun/extra/bundebug"
 )
 
 // Database holds properties needed for making db connection.
@@ -35,9 +33,9 @@ func (db Database) OpenDb() (*bun.DB, error) {
 	sqlDb.SetMaxOpenConns(db.MaxOpenConn)
 	sqlDb.SetMaxIdleConns(db.MaxIdleConn)
 	bunDb := bun.NewDB(sqlDb, pgdialect.New())
-	if utils.IsDev() {
-		bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
-	}
+	// if utils.IsDev() {
+	// 	bunDb.AddQueryHook(bundebug.NewQueryHook(bundebug.WithVerbose(true)))
+	// }
 
 	return bunDb, nil
 }

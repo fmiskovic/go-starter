@@ -35,6 +35,7 @@ func SetUpDb() (*TestDB, error) {
 	// start postgres container
 	postgres, err := startPostgresContainer(ctx)
 	if err != nil {
+		cancel()
 		return nil, err
 	}
 
@@ -44,11 +45,13 @@ func SetUpDb() (*TestDB, error) {
 			slog.Info("postgres container is ready")
 			host, err := postgres.Host(ctx)
 			if err != nil {
+				cancel()
 				panic(err)
 			}
 
 			port, err := postgres.MappedPort(ctx, "5432")
 			if err != nil {
+				cancel()
 				panic(err)
 			}
 
@@ -70,11 +73,13 @@ func SetUpDb() (*TestDB, error) {
 
 			bunDb, err = myDb.OpenDb()
 			if err != nil {
+				cancel()
 				return nil, err
 			}
 
 			// migrate db
 			if err = migrateDB(ctx, bunDb); err != nil {
+				cancel()
 				return nil, err
 			}
 
@@ -83,6 +88,7 @@ func SetUpDb() (*TestDB, error) {
 			fixture := dbfixture.New(bunDb, dbfixture.WithTruncateTables())
 			err = fixture.Load(ctx, os.DirFS("testdata"), "fixture.yml")
 			if err != nil {
+				cancel()
 				return nil, err
 			}
 			break
