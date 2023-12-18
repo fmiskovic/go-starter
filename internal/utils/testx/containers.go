@@ -30,7 +30,7 @@ type TestDB struct {
 
 // SetUpDb is a helper func that runs posgres DB in a docker using testcontainers.
 func SetUpDb() (*TestDB, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*120)
 
 	// start postgres container
 	postgres, err := startPostgresContainer(ctx)
