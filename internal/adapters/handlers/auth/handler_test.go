@@ -18,14 +18,21 @@ import (
 )
 
 func TestHandleSignIn(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/auth/login", handler.HandleSignIn())
+	ts.App.Post("/auth/login", handler.HandleSignIn())
 
 	tests := []struct {
 		name     string
@@ -69,7 +76,7 @@ func TestHandleSignIn(t *testing.T) {
 			req := httptest.NewRequest("POST", "/auth/login", bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 20000)
+			res, err := ts.App.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
@@ -78,14 +85,21 @@ func TestHandleSignIn(t *testing.T) {
 }
 
 func TestHandleSignUp(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/auth/register", handler.HandleSignUp())
+	ts.App.Post("/auth/register", handler.HandleSignUp())
 
 	tests := []struct {
 		name     string
@@ -147,7 +161,7 @@ func TestHandleSignUp(t *testing.T) {
 			req := httptest.NewRequest("POST", "/auth/register", bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 20000)
+			res, err := ts.App.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
@@ -156,14 +170,21 @@ func TestHandleSignUp(t *testing.T) {
 }
 
 func TestHandleChangePassword(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/auth/password", handler.HandleChangePassword())
+	ts.App.Post("/auth/password", handler.HandleChangePassword())
 
 	tests := []struct {
 		name     string
@@ -201,7 +222,7 @@ func TestHandleChangePassword(t *testing.T) {
 			req := httptest.NewRequest("POST", "/auth/password", bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 30000)
+			res, err := ts.App.Test(req, 30000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 		})

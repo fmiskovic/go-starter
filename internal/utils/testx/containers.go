@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"runtime"
-	"testing"
 	"time"
 
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
@@ -23,16 +22,20 @@ import (
 	"github.com/uptrace/bun/migrate"
 )
 
-// SetUpDb helps to set up test DB.
-func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
-	t.Helper()
+type TestDB struct {
+	Ctx      context.Context
+	BunDb    *bun.DB
+	Shutdown func()
+}
 
+// SetUpDb is a helper func that runs posgres DB in a docker using testcontainers.
+func SetUpDb() (*TestDB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 
 	// start postgres container
 	postgres, err := startPostgresContainer(ctx)
 	if err != nil {
-		t.Fatalf("failed to start postgres container: %v", err)
+		return nil, err
 	}
 
 	var bunDb *bun.DB
@@ -67,12 +70,12 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 
 			bunDb, err = myDb.OpenDb()
 			if err != nil {
-				t.Fatalf("db connection failed: %v", err)
+				return nil, err
 			}
 
 			// migrate db
 			if err = migrateDB(ctx, bunDb); err != nil {
-				t.Fatalf("db migration failed: %v", err)
+				return nil, err
 			}
 
 			// seed db
@@ -80,19 +83,23 @@ func SetUpDb(t *testing.T) (func(t *testing.T), context.Context, *bun.DB) {
 			fixture := dbfixture.New(bunDb, dbfixture.WithTruncateTables())
 			err = fixture.Load(ctx, os.DirFS("testdata"), "fixture.yml")
 			if err != nil {
-				t.Fatalf("db fixture loading failed: %v", err)
+				return nil, err
 			}
 			break
 		}
 		slog.Info("waiting for postgres container...")
 	}
 
-	return func(t *testing.T) {
-		if err := terminateContainer(ctx, postgres); err != nil {
-			slog.Warn("failed to terminate container", err)
-		}
-		cancel()
-	}, ctx, bunDb
+	return &TestDB{
+		Ctx:   ctx,
+		BunDb: bunDb,
+		Shutdown: func() {
+			if err := terminateContainer(ctx, postgres); err != nil {
+				slog.Warn("failed to terminate container", err)
+			}
+			cancel()
+		},
+	}, nil
 }
 
 func startPostgresContainer(ctx context.Context) (testcontainers.Container, error) {

@@ -3,18 +3,25 @@ package testx
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/uptrace/bun"
-	"testing"
 )
 
-// SetUpServer helps to set up test Server.
-func SetUpServer(t *testing.T) (*bun.DB, *fiber.App) {
-	t.Helper()
+type TestServer struct {
+	TestDb TestDB
+	App    *fiber.App
+}
 
-	_, _, bunDb := SetUpDb(t)
+// SetUpServer helps to set up test Server.
+func SetUpServer() (*TestServer, error) {
+	testDb, err := SetUpDb()
+	if err != nil {
+		return nil, err
+	}
 
 	app := fiber.New()
 	app.Use(recover.New())
 
-	return bunDb, app
+	return &TestServer{
+		TestDb: *testDb,
+		App:    app,
+	}, nil
 }

@@ -43,14 +43,16 @@ func (s UserService) SingIn(ctx context.Context, req *user.SignInRequest) (*user
 		roles = append(roles, role.Name)
 	}
 
+	now := time.Now()
+
 	// Create the Claims
 	claims := jwt.MapClaims{
 		"email": u.Email,
 		"sub":   u.ID,
 		"name":  u.FullName,
 		"roles": roles,
-		"exp":   time.Now().Add(time.Hour * s.authConfig.TokenExp).Unix(),
-		"iat":   time.Now().Unix(),
+		"exp":   now.Add(time.Hour * s.authConfig.TokenExp).Unix(),
+		"iat":   now.Unix(),
 	}
 
 	// Create token
@@ -108,6 +110,7 @@ func (s UserService) Update(ctx context.Context, req *user.UpdateRequest) (*user
 		user.Location(req.Location),
 		user.Sex(req.Gender.Numberfy()),
 	)
+
 	if err = s.repo.Update(ctx, u); err != nil {
 		return nil, err
 	}

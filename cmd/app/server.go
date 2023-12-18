@@ -9,13 +9,14 @@ import (
 	"path/filepath"
 
 	"github.com/fmiskovic/go-starter/internal/adapters/db"
+	"github.com/fmiskovic/go-starter/internal/utils"
 
 	"github.com/fmiskovic/go-starter/internal/core/configs"
 
-	"github.com/gofiber/template/django/v3"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/template/django/v3"
 	"github.com/uptrace/bun"
 )
 
@@ -71,6 +72,11 @@ func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 		PassLocalsToViews:     true,
 		Views:                 initViews(),
 	})
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: utils.GetEnvOrDefault("ALLOW_ORIGINS", "*"),
+		MaxAge:       -1, //negative number disables caching completely
+	}))
 
 	router := newRouter(db, app, authConfig)
 

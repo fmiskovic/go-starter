@@ -63,6 +63,8 @@ func (r Router) initStaticRouters() {
 
 	r.app.Get("/", handlers.HandleHome)
 	r.app.Get("/about", handlers.HandleAbout)
+	r.app.Get("/users", handlers.HandleUsers)
+	r.app.Get("/login", handlers.HandleLogin)
 	r.app.Get("/flash", handlers.HandleFlash)
 
 	r.app.Use(handlers.NotFoundMiddleware)

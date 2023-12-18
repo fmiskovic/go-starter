@@ -29,11 +29,14 @@ func NewRole(name string) *Role {
 			slog.Warn("Recovered in user.New() when uuid.New() panic", r)
 		}
 	}()
+
+	now := time.Now()
+
 	return &Role{
 		Entity: domain.Entity{
 			ID:        uuid.New(),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		Name: name,
 	}

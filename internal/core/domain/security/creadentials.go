@@ -26,11 +26,12 @@ func NewCredentials(username, password string) *Credentials {
 		}
 	}()
 
+	now := time.Now()
 	return &Credentials{
 		Entity: domain.Entity{
 			ID:        uuid.New(),
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: now,
+			UpdatedAt: now,
 		},
 		Username: username,
 		Password: password,

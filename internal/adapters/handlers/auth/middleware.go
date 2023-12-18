@@ -34,7 +34,7 @@ func (m Middleware) AdminAuthenticated() fiber.Handler {
 		})
 
 		if err != nil {
-			slog.Error("parsing jwt has an error", "error", err)
+			slog.Error("parsing jwt", "error", err)
 			if err == jwt.ErrSignatureInvalid {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"error": "Invalid signature",

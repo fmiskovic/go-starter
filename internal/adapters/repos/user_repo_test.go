@@ -23,10 +23,13 @@ func TestUserRepo_GetById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	// setup test cases
 	tests := []struct {
@@ -52,7 +55,7 @@ func TestUserRepo_GetById(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			u, err := repo.GetById(ctx, tt.givenId)
+			u, err := repo.GetById(testDb.Ctx, tt.givenId)
 
 			assert.Equal(tt.wantErr, err)
 			if u != nil {
@@ -72,10 +75,13 @@ func TestUserRepo_DeleteById(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	// setup test cases
 	tests := []struct {
@@ -88,7 +94,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			name:    "given valid id should delete user",
 			givenId: uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"),
 			verify: func(id uuid.UUID, t *testing.T) {
-				u, err := repo.GetById(ctx, id)
+				u, err := repo.GetById(testDb.Ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 				assert.True(u == nil)
 			},
@@ -98,7 +104,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 			name:    "given non-existng id should not return error",
 			givenId: uuid.MustParse("22222222-b2b0-4051-9eb6-9a99e451af01"),
 			verify: func(id uuid.UUID, t *testing.T) {
-				_, err := repo.GetById(ctx, id)
+				_, err := repo.GetById(testDb.Ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 			},
 			wantErr: nil,
@@ -107,7 +113,7 @@ func TestUserRepo_DeleteById(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := repo.DeleteById(ctx, tt.givenId)
+			err := repo.DeleteById(testDb.Ctx, tt.givenId)
 			assert.Equal(tt.wantErr, err)
 			tt.verify(tt.givenId, t)
 		})
@@ -123,10 +129,13 @@ func TestUserRepo_Create(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	// setup test cases
 	type args struct {
@@ -166,7 +175,7 @@ func TestUserRepo_Create(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := repo.Create(ctx, tt.args.u)
+			err := repo.Create(testDb.Ctx, tt.args.u)
 
 			if tt.wantErr != nil {
 				assert.True(strings.Contains(err.Error(), tt.wantErr.Error()))
@@ -186,10 +195,13 @@ func TestUserRepo_Update(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	// setup test cases
 	type args struct {
@@ -208,7 +220,7 @@ func TestUserRepo_Update(t *testing.T) {
 					user.Id(uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af03"))),
 			},
 			verify: func(id uuid.UUID, t *testing.T) {
-				u, err := repo.GetById(ctx, id)
+				u, err := repo.GetById(testDb.Ctx, id)
 				assert.NoErr(err)
 				assert.Equal("updated1@fake.com", u.Email)
 			},
@@ -226,7 +238,7 @@ func TestUserRepo_Update(t *testing.T) {
 				u: user.New(user.Email("updated3@fake.com")),
 			},
 			verify: func(id uuid.UUID, t *testing.T) {
-				_, err := repo.GetById(ctx, id)
+				_, err := repo.GetById(testDb.Ctx, id)
 				assert.True(strings.Contains(err.Error(), "no rows in result set"))
 			},
 			wantErr: nil,
@@ -235,7 +247,7 @@ func TestUserRepo_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := repo.Update(ctx, tt.args.u)
+			err := repo.Update(testDb.Ctx, tt.args.u)
 			if tt.wantErr != nil {
 				assert.True(strings.Contains(err.Error(), tt.wantErr.Error()))
 			} else {
@@ -258,10 +270,13 @@ func TestUserRepo_GetPage(t *testing.T) {
 	assert := is.NewRelaxed(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	// setup test cases
 	type args struct {
@@ -300,7 +315,7 @@ func TestUserRepo_GetPage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p, err := repo.GetPage(ctx, tt.args.pageable)
+			p, err := repo.GetPage(testDb.Ctx, tt.args.pageable)
 
 			assert.Equal(tt.wantErr, err)
 			if err == nil {
@@ -319,10 +334,13 @@ func TestUserRepo_GetByUsername(t *testing.T) {
 	}
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	type args struct {
 		username string
@@ -354,7 +372,7 @@ func TestUserRepo_GetByUsername(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := repo.GetByUsername(ctx, tt.args.username)
+			got, err := repo.GetByUsername(testDb.Ctx, tt.args.username)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("UserRepo.GetByUsername() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -378,10 +396,13 @@ func TestUserRepo_ChangePassword(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	type args struct {
 		req *user.ChangePasswordRequest
@@ -396,7 +417,7 @@ func TestUserRepo_ChangePassword(t *testing.T) {
 			name: "given valid creadentials should change passwod",
 			args: args{&user.ChangePasswordRequest{Username: "username1", OldPassword: "password1", NewPassword: "Password1234!"}},
 			verify: func(t *testing.T, username string) {
-				u, err := repo.GetByUsername(ctx, "username1")
+				u, err := repo.GetByUsername(testDb.Ctx, "username1")
 				assert.NoErr(err)
 				assert.True(password.CheckPasswordHash("Password1234!", u.Credentials.Password))
 			},
@@ -417,7 +438,7 @@ func TestUserRepo_ChangePassword(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := repo.ChangePassword(ctx, tt.args.req); (err != nil) != tt.wantErr {
+			if err := repo.ChangePassword(testDb.Ctx, tt.args.req); (err != nil) != tt.wantErr {
 				t.Errorf("UserRepo.ChangePassword() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			tt.verify(t, tt.args.req.Username)
@@ -432,10 +453,13 @@ func TestUserRepo_AddRoles(t *testing.T) {
 	}
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	type args struct {
 		roleNames []string
@@ -473,7 +497,7 @@ func TestUserRepo_AddRoles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := repo.AddRoles(ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
+			if err := repo.AddRoles(testDb.Ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
 				t.Errorf("UserRepo.AddRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -487,10 +511,13 @@ func TestUserRepo_RemoveRoles(t *testing.T) {
 	}
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	type args struct {
 		roleNames []string
@@ -528,7 +555,7 @@ func TestUserRepo_RemoveRoles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := repo.RemoveRoles(ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
+			if err := repo.RemoveRoles(testDb.Ctx, tt.args.roleNames, tt.args.id); (err != nil) != tt.wantErr {
 				t.Errorf("UserRepo.RemoveRoles() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -544,10 +571,13 @@ func TestUserRepo_EnableDisable(t *testing.T) {
 	assert := is.New(t)
 
 	// setup db
-	tearDown, ctx, bunDb := testx.SetUpDb(t)
-	defer tearDown(t)
+	testDb, err := testx.SetUpDb()
+	if err != nil {
+		t.Errorf("failed to run test db: %v", err)
+	}
+	defer testDb.Shutdown()
 
-	repo := NewUserRepo(bunDb)
+	repo := NewUserRepo(testDb.BunDb)
 
 	type args struct {
 		id uuid.UUID
@@ -562,7 +592,7 @@ func TestUserRepo_EnableDisable(t *testing.T) {
 			name: "given valid user id should enable user",
 			args: args{id: uuid.MustParse("220cea28-b2b0-4051-9eb6-9a99e451af01")},
 			verify: func(t *testing.T, id uuid.UUID) {
-				u, err := repo.GetById(ctx, id)
+				u, err := repo.GetById(testDb.Ctx, id)
 				assert.NoErr(err)
 				assert.True(u.Enabled)
 			},
@@ -577,7 +607,7 @@ func TestUserRepo_EnableDisable(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := repo.EnableDisable(ctx, tt.args.id); (err != nil) != tt.wantErr {
+			if err := repo.EnableDisable(testDb.Ctx, tt.args.id); (err != nil) != tt.wantErr {
 				t.Errorf("UserRepo.EnableDisable() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})

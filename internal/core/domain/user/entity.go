@@ -35,7 +35,8 @@ func New(opts ...Option) *User {
 		}
 	}()
 	id := uuid.New()
-	u := &User{Entity: domain.Entity{ID: id, CreatedAt: time.Now(), UpdatedAt: time.Now()}}
+	now := time.Now()
+	u := &User{Entity: domain.Entity{ID: id, CreatedAt: now, UpdatedAt: now}}
 	for _, opt := range opts {
 		opt(u)
 	}

@@ -22,14 +22,21 @@ import (
 )
 
 func TestHandleCreate(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/user", handler.HandleCreate())
+	ts.App.Post("/user", handler.HandleCreate())
 
 	tests := []struct {
 		name     string
@@ -77,7 +84,7 @@ func TestHandleCreate(t *testing.T) {
 			req := httptest.NewRequest("POST", tt.route, bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 20000)
+			res, err := ts.App.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, res)
@@ -86,14 +93,21 @@ func TestHandleCreate(t *testing.T) {
 }
 
 func TestHandleUpdate(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Put("/user", handler.HandleUpdate())
+	ts.App.Put("/user", handler.HandleUpdate())
 
 	tests := []struct {
 		name     string
@@ -150,7 +164,7 @@ func TestHandleUpdate(t *testing.T) {
 			req.Header.Add("Content-Type", "application/json")
 
 			// when
-			res, err := app.Test(req, 5000)
+			res, err := ts.App.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -160,14 +174,21 @@ func TestHandleUpdate(t *testing.T) {
 }
 
 func TestHandleDeleteById(t *testing.T) {
-	assert := is.NewRelaxed(t)
+	if testing.Short() {
+		return
+	}
+	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Delete("/user/:id", handler.HandleDeleteById())
+	ts.App.Delete("/user/:id", handler.HandleDeleteById())
 
 	type args struct {
 		id string
@@ -208,7 +229,7 @@ func TestHandleDeleteById(t *testing.T) {
 			// given
 			req := httptest.NewRequest("DELETE", fmt.Sprintf("%s/%s", "/user", tt.args.id), nil)
 			// when
-			res, err := app.Test(req, 5000)
+			res, err := ts.App.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -218,14 +239,21 @@ func TestHandleDeleteById(t *testing.T) {
 }
 
 func TestHandleGetById(t *testing.T) {
-	assert := is.NewRelaxed(t)
+	if testing.Short() {
+		return
+	}
+	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Get("/user/:id", handler.HandleGetById())
+	ts.App.Get("/user/:id", handler.HandleGetById())
 
 	type args struct {
 		id string
@@ -276,7 +304,7 @@ func TestHandleGetById(t *testing.T) {
 			req := httptest.NewRequest("GET", fmt.Sprintf("/%s/%s", "user", tt.args.id), nil)
 
 			// when
-			res, err := app.Test(req, 5000)
+			res, err := ts.App.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -286,14 +314,21 @@ func TestHandleGetById(t *testing.T) {
 }
 
 func TestHandleGetPage(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Get("/user", handler.HandleGetPage())
+	ts.App.Get("/user", handler.HandleGetPage())
 
 	tests := []struct {
 		name     string
@@ -363,7 +398,7 @@ func TestHandleGetPage(t *testing.T) {
 			// given
 			req := httptest.NewRequest("GET", tt.route, nil)
 			// when
-			res, err := app.Test(req, 5000)
+			res, err := ts.App.Test(req, 5000)
 			// then
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
@@ -373,14 +408,21 @@ func TestHandleGetPage(t *testing.T) {
 }
 
 func TestHandleUserRoles(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/user/roles", handler.HandleUserRoles())
+	ts.App.Post("/user/roles", handler.HandleUserRoles())
 
 	tests := []struct {
 		name     string
@@ -418,7 +460,7 @@ func TestHandleUserRoles(t *testing.T) {
 			req := httptest.NewRequest("POST", "/user/roles", bytes.NewReader(tt.reqBody))
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 20000)
+			res, err := ts.App.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 		})
@@ -426,14 +468,21 @@ func TestHandleUserRoles(t *testing.T) {
 }
 
 func TestHandleEnableDisable(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	assert := is.New(t)
 
-	bunDb, app := testx.SetUpServer(t)
+	ts, err := testx.SetUpServer()
+	if err != nil {
+		t.Errorf("failed to run test server: %v", err)
+	}
+	defer ts.TestDb.Shutdown()
 
-	repo := repos.NewUserRepo(bunDb)
+	repo := repos.NewUserRepo(ts.TestDb.BunDb)
 	service := services.NewUserService(repo, configs.NewAuthConfig())
 	handler := NewHandler(service)
-	app.Post("/user/:id/enabledisable", handler.HandleEnableDisable())
+	ts.App.Post("/user/:id/enabledisable", handler.HandleEnableDisable())
 
 	type args struct {
 		id string
@@ -480,7 +529,7 @@ func TestHandleEnableDisable(t *testing.T) {
 			req := httptest.NewRequest("POST", fmt.Sprintf("/user/%s/enabledisable", tt.args.id), nil)
 			req.Header.Add("Content-Type", "application/json")
 
-			res, err := app.Test(req, 20000)
+			res, err := ts.App.Test(req, 20000)
 			assert.NoErr(err)
 			assert.Equal(res.StatusCode, tt.wantCode)
 			tt.verify(t, tt.args.id)
