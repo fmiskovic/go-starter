@@ -15,6 +15,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/template/django/v3"
 	"github.com/uptrace/bun"
@@ -77,6 +78,10 @@ func initApp(db *bun.DB, authConfig configs.AuthConfig) *fiber.App {
 		AllowOrigins: utils.GetEnvOrDefault("ALLOW_ORIGINS", "*"),
 		MaxAge:       -1, //negative number disables caching completely
 	}))
+
+	if utils.IsDev() {
+		app.Use(pprof.New())
+	}
 
 	router := newRouter(db, app, authConfig)
 

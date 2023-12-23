@@ -5,6 +5,7 @@ import (
 
 	"github.com/fmiskovic/go-starter/internal/core/configs"
 	"github.com/fmiskovic/go-starter/internal/core/domain/security"
+	"github.com/fmiskovic/go-starter/internal/utils"
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -26,6 +27,12 @@ func (m Middleware) Authenticated() fiber.Handler {
 
 func (m Middleware) AdminAuthenticated() fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		authHeader := c.Get(fiber.HeaderAuthorization)
+		if utils.IsBlank(authHeader) {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": "Unauthorized",
+			})
+		}
 		tokenString := c.Get(fiber.HeaderAuthorization)[7:]
 		claims := jwt.MapClaims{}
 
