@@ -177,6 +177,10 @@ func (repo *UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswo
 
 // AddRoles to existing user.
 func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
+	l := len(roleNames)
+	if l == 0 {
+		return nil
+	}
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		repo.mutex.Lock()
 		defer repo.mutex.Unlock()
@@ -193,11 +197,11 @@ func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.
 			return apiErr.ErrInvalidId
 		}
 
-		roles := []*security.Role{}
-		for _, name := range roleNames {
+		var roles = make([]*security.Role, l)
+		for i, name := range roleNames {
 			role := security.NewRole(name)
 			role.UserID = id
-			roles = append(roles, role)
+			roles[i] = role
 		}
 
 		if len(roles) > 0 {
