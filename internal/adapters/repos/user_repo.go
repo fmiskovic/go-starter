@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"sync"
 	"time"
 
 	apiErr "github.com/fmiskovic/go-starter/internal/core/error"
@@ -20,13 +19,12 @@ import (
 
 // UserRepo is implementation of ports.UserRepo interface.
 type UserRepo struct {
-	db    *bun.DB
-	mutex sync.Mutex
+	db *bun.DB
 }
 
 // NewUserRepo instantiate new UserRepo.
 func NewUserRepo(db *bun.DB) *UserRepo {
-	return &UserRepo{db, sync.Mutex{}}
+	return &UserRepo{db}
 }
 
 // GetById returns user by specified id.
@@ -137,8 +135,8 @@ func (repo *UserRepo) GetByUsername(ctx context.Context, username string) (*user
 // ChangePassword updates users password.
 func (repo *UserRepo) ChangePassword(ctx context.Context, req *user.ChangePasswordRequest) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		repo.mutex.Lock()
-		defer repo.mutex.Unlock()
+		// repo.mutex.Lock()
+		// defer repo.mutex.Unlock()
 
 		var u = new(user.User)
 
@@ -182,9 +180,6 @@ func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.
 		return nil
 	}
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		repo.mutex.Lock()
-		defer repo.mutex.Unlock()
-
 		exists, err := tx.NewSelect().
 			Model((*user.User)(nil)).
 			Where("? = ?", bun.Ident("id"), id).
@@ -222,9 +217,6 @@ func (repo *UserRepo) AddRoles(ctx context.Context, roleNames []string, id uuid.
 // RemoveRoles from existing user.
 func (repo *UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		repo.mutex.Lock()
-		defer repo.mutex.Unlock()
-
 		exists, err := tx.NewSelect().
 			Model((*user.User)(nil)).
 			Where("? = ?", bun.Ident("id"), id).
@@ -261,8 +253,8 @@ func (repo *UserRepo) RemoveRoles(ctx context.Context, roleNames []string, id uu
 // EnableDisable enables user if it is disabled or vice versa.
 func (repo *UserRepo) EnableDisable(ctx context.Context, id uuid.UUID) error {
 	return repo.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		repo.mutex.Lock()
-		defer repo.mutex.Unlock()
+		// repo.mutex.Lock()
+		// defer repo.mutex.Unlock()
 
 		var u = &user.User{}
 
